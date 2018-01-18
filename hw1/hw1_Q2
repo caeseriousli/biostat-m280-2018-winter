@@ -14,3 +14,19 @@ $ awk 'END { print NR }' /home/m280-data/hw1/merge-geno.bim
 
 # number (2)
 
+$ awk '!seen[$1]++ {print $1}' /home/m280-data/hw1/merge-geno.bim
+
+# 1
+# 3
+# 5
+# 7
+# 9
+# 11
+# 13
+# 15
+# 17
+# 19
+# 21
+
+# From the results we see it contains 1, 2, 5, 7, 9, 11, 13, 15, 17, 19, 21 (total of 11) chromosomes
+
