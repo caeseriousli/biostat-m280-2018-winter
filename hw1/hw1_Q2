@@ -1,0 +1,16 @@
+## QUESTION 2
+
+# number (1)
+
+$ awk 'END { print NR }' /home/m280-data/hw1/merge-geno.fam
+
+# 959
+# There are 959 individuals in merge-geno.fam file
+
+$ awk 'END { print NR }' /home/m280-data/hw1/merge-geno.bim
+
+# 8348674
+# There are 8348675 SNP's in the data set
+
+# number (2)
+
