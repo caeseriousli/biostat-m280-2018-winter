@@ -1,6 +1,7 @@
 # Problem 2
 
-(1) How many persons are in the data set (statisticians call this n)? How many SNPs are in the data set (statisticians call this p)?   
+(1) How many persons are in the data set (statisticians call this n)? How many 
+  SNPs are in the data set (statisticians call this p)?   
 
 ```{bash}
 awk 'END { print NR }' /home/m280-data/hw1/merge-geno.fam
@@ -42,7 +43,8 @@ Results:
 19   
 21   
 
-From the results we see it contains 1, 2, 5, 7, 9, 11, 13, 15, 17, 19, 21 (total of 11) chromosomes
+From the results we see it contains 1, 2, 5, 7, 9, 11, 13, 15, 17, 19, 21 
+  (total of 11) chromosomes
 
 (2) Part B  How many SNPs are in each chromosome?   
 ```{bash}
@@ -63,12 +65,15 @@ Results:
  393615 19   
  239352 21  
 
-number of SNP's are as listed above. Achieved by piping an awk with sort (numerica sorting only the first field), and then pipe a uniq outputting only the unique chromosomes with their repetitions of occurance.    
+number of SNP's are as listed above. Achieved by piping an awk with sort 
+  (numerical sorting only the first field), and then pipe a uniq outputting 
+  only the unique chromosomes with their repetitions of occurance.    
 
 (3) How many SNPs are located within MAP4 gene?    
 
 ```{bash}
-awk '{ if ( $4 >= 47892180 && $4 <= 48130769 ) print}' /home/m280-data/hw1/merge-geno.bim | awk 'END { print NR }'
+awk '{ if ( $4 >= 47892180 && $4 <= 48130769 ) print}' 
+  /home/m280-data/hw1/merge-geno.bim | awk 'END { print NR }'
 ```
 
 Results:   
