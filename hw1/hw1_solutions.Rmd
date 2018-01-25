@@ -90,30 +90,3 @@ Use Linux shell commands to answer following questions.
       /home/m280-data/hw1/merge-geno.fam
     ```
 
-## Q3. R Batch Run
-
-In class we discussed using R to organize simulation studies. 
-
-1. Expand the [`runSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/runSim.R) script to include arguments `seed` (random seed), `n` (sample size), `dist` (distribution) and `rep` (number of simulation replicates). When `dist="gaussian"`, generate data from standard normal; when `dist="t1"`, generate data from t-distribution with degree of freedom 1 (same as Cauchy distribution); when `dist="t5"`, generate data from t-distribution with degree of freedom 5. Calling `runSim.R` will (1) set random seed according to argument `seed`, (2) generate data according to argument `dist`, (3) compute the primed-indexed average estimator in class and the classical sample average estimator for each simulation replicate, (4) report the average mean squared error (MSE)
-$$
-  \frac{\sum_{r=1}^{\text{rep}} (\widehat \mu_r - \mu_{\text{true}})^2}{\text{rep}}
-$$
-for both methods.
-
-2. Modify the [`autoSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/autoSim.R) script to run simulations with combinations of sample sizes `nVals = seq(100, 500, by=100)` and distributions `distTypes = c("gaussian", "t1", "t5")` and write output to appropriately named files. Use `rep = 50`, and `seed = 280`. 
-
-3. Write an R script to collect simulation results from output files and print average MSEs in a table of format
-
-| $n$ | Method   | $t_1$ | $t_5$ | Gaussian |
-|-----|----------|-------|-------|----------|
-| 100 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 200 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 300 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 400 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 500 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-
