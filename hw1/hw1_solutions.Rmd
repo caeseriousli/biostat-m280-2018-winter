@@ -48,12 +48,12 @@ Use Linux shell commands to answer following questions.
 
     Answer: The chromosome numbers are shown below:
     ```{bash}
-    awk '!seen[$1]++ {print $1}' /home/m280-data/hw1/merge-geno.bim
+    awk '!seen[$1]++ { print $1 }' /home/m280-data/hw1/merge-geno.bim
     ```
 
     Answer: Numbers of SNP's for each chromosome are shown below:
     ```{bash}
-    awk '{print $1}' /home/m280-data/hw1/merge-geno.bim | sort -n |  uniq -c
+    awk '{ print $1 }' /home/m280-data/hw1/merge-geno.bim | sort -n |  uniq -c
     ```
 
 3. MAP4 (microtubule-associated protein 4) is a gene on chromosome 3 spanning positions 47,892,180 bp -- 48,130,769 bp. How many SNPs are located within MAP4 gene?
@@ -72,17 +72,23 @@ Use Linux shell commands to answer following questions.
       
     Answer: The shell command is knitted below:
     ```{bash}
-    awk 'BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER.\n8348674  = 
-    NUMBER OF SNPS LISTED HERE." > "Mendel_SNP" } 
-    { print $2 "," $1 "," $4 >> "Mendel_SNP" }' 
-    /home/m280-data/hw1/merge-geno.bim
+    awk 'BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER.\n8348674 
+      = NUMBER OF SNPS LISTED HERE." > "Mendel_SNP" } 
+      { print $2 "," $1 "," $4 >> "Mendel_SNP" }' 
+      /home/m280-data/hw1/merge-geno.bim
     ```
     
     - Mendel's pedigree file is similar to the plink `fam` file but has format  
     `Family ID`, `Person ID`, `Father ID`, `Mother ID`, `Sex` coded as M or F, `Twin Status`  
-    with each field separated by a comma. Write a Linux shell command to convert `merge-geno.fam` to Mendel pedigree file. Since twin status is not available in plink format, we put nothing for that field. Also Mendel limits Person ID to have length less than or equal to 8 characters, so we have to strip the string `T2DG` from the IDs. 
-    
-    
+    with each field separated by a comma. Write a Linux shell command to convert `merge-geno.fam` to Mendel pedigree file. Since twin status is not available in plink format, we put nothing for that field. Also Mendel limits Person ID to have length less than or equal to 8 characters, so we have to strip the string `T2DG` from the IDs.
+
+    Answer: The shell command is knitted below:
+    ```{bash}
+    awk '{ if ( $5 == 1 ) sex = "M"; else sex = "F" } 
+      { print $1 "," substr($2, 5, 8) "," substr($3, 5, 8) 
+      "," substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }' 
+      /home/m280-data/hw1/merge-geno.fam
+    ```
 
 ## Q3. R Batch Run
 

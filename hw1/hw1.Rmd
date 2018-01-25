@@ -1,29 +1,30 @@
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = TRUE)
+```
+
 # Problem 2
 
-(1) How many persons are in the data set (statisticians call this n)? How many 
-  SNPs are in the data set (statisticians call this p)?   
+## Part (1)
+How many persons are in the data set (statisticians call this n)? How many SNPs are in the data set (statisticians call this p)?   
 
-```{bash}
-awk 'END { print NR }' /home/m280-data/hw1/merge-geno.fam
-```
+    Number of persons in this data set is:
+    ```{bash}
+    awk 'END { print NR }' /home/m280-data/hw1/merge-geno.fam
+    ```
 
-Results:   
+    Number of SNP's in the data set is:
+    ```{bash}
+    awk 'END { print NR }' /home/m280-data/hw1/merge-geno.bim
+    ```
 
-959
- 
-There are 959 individuals in merge-geno.fam file   
+  
 
-```{bash}
-awk 'END { print NR }' /home/m280-data/hw1/merge-geno.bim
-```
+## Part (2) 
 
-Results:   
-
-8348674   
-
-There are 8348675 SNP's in the data set   
-
-(2) Part A Which chromosomes does this data set contain?   
+### Part A Which chromosomes does this data set contain?   
 
 ```{bash}
 awk '!seen[$1]++ {print $1}' /home/m280-data/hw1/merge-geno.bim
@@ -46,7 +47,8 @@ Results:
 From the results we see it contains 1, 2, 5, 7, 9, 11, 13, 15, 17, 19, 21 
   (total of 11) chromosomes
 
-(2) Part B  How many SNPs are in each chromosome?   
+## Part (2) 
+### Part B  How many SNPs are in each chromosome?   
 ```{bash}
 awk '{print $1}' /home/m280-data/hw1/merge-geno.bim | sort -n |  uniq -c
 ```
@@ -69,7 +71,8 @@ number of SNP's are as listed above. Achieved by piping an awk with sort
   (numerical sorting only the first field), and then pipe a uniq outputting 
   only the unique chromosomes with their repetitions of occurance.    
 
-(3) How many SNPs are located within MAP4 gene?    
+## Part (3) 
+How many SNPs are located within MAP4 gene?    
 
 ```{bash}
 awk '{ if ( $4 >= 47892180 && $4 <= 48130769 ) print}' 
@@ -82,4 +85,6 @@ Results:
 
 Number of SNP's located within MAP4 gene is 12423
 
-
+```{bash}
+awk 'BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER.\n8348674  = NUMBER OF SNPS LISTED HERE." > "Mendel_SNP" } { print $2 "," $1 "," $4 >> "Mendel_SNP" }' /home/m280-data/hw1/merge-geno.bim
+```
