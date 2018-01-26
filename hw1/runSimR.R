@@ -35,5 +35,7 @@ all_prime = replicate(rep, estMeanPrimes(x))
 all_classic = replicate(rep, mean(x))
 
 # Print average MSE's for both prime-indexed and classic simulations
-noquote(c("Prime-index Average MSE", sum(all_prime)/rep))
-noquote(c("Prime-index Average MSE", sum(all_classic)/rep))
+## Note that since the true mean is zero for all distributions, 
+##   we simply square the vector
+noquote(c("Prime-index Average MSE: ", round(sum((all_prime)^2)/rep, 5)))
+noquote(c("Prime-index Average MSE: ", round(sum((all_classic)^2)/rep, 5)))

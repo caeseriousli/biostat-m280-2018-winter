@@ -60,8 +60,7 @@ Use Linux shell commands to answer following questions.
 
     Answer: The number of SNP's located within MAP4 gene is shown below:
     ```{bash}
-    awk '{ if ( $4 >= 47892180 && $4 <= 48130769 ) print}' 
-      /home/m280-data/hw1/merge-geno.bim | awk 'END { print NR }'
+    awk '{ if ( $4 >= 47892180 && $4 <= 48130769 ) print}' /home/m280-data/hw1/merge-geno.bim | awk        'END { print NR }'
     ```
 
 4. Statistical geneticists often have to reformat a data set to feed into various analysis programs. For example, to use the Mendel software <http://www.genetics.ucla.edu/software/mendel>, we have to reformat the data set to be read by Mendel.
@@ -72,10 +71,7 @@ Use Linux shell commands to answer following questions.
       
     Answer: The shell command is knitted below:
     ```{bash}
-    awk 'BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER.\n8348674 
-      = NUMBER OF SNPS LISTED HERE." > "Mendel_SNP" } 
-      { print $2 "," $1 "," $4 >> "Mendel_SNP" }' 
-      /home/m280-data/hw1/merge-geno.bim
+    awk 'BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER.\n8348674 = NUMBER OF SNPS LISTED HERE."     > "Mendel_SNP" } { print $2 "," $1 "," $4 >> "Mendel_SNP" }' /home/m280-data/hw1/merge-geno.bim
     ```
     
     - Mendel's pedigree file is similar to the plink `fam` file but has format  
@@ -84,9 +80,38 @@ Use Linux shell commands to answer following questions.
 
     Answer: The shell command is knitted below:
     ```{bash}
-    awk '{ if ( $5 == 1 ) sex = "M"; else sex = "F" } 
-      { print $1 "," substr($2, 5, 8) "," substr($3, 5, 8) 
-      "," substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }' 
-      /home/m280-data/hw1/merge-geno.fam
+    awk '{ if ( $5 == 1 ) sex = "M"; else sex = "F" } { print $1 "," substr($2, 5, 8) "," substr($3, 5,     8) "," substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }' /home/m280-data/hw1/merge-geno.fam
     ```
+
+## Q3. R Batch Run
+
+In class we discussed using R to organize simulation studies. 
+
+1. Expand the [`runSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/runSim.R) script to include arguments `seed` (random seed), `n` (sample size), `dist` (distribution) and `rep` (number of simulation replicates). When `dist="gaussian"`, generate data from standard normal; when `dist="t1"`, generate data from t-distribution with degree of freedom 1 (same as Cauchy distribution); when `dist="t5"`, generate data from t-distribution with degree of freedom 5. Calling `runSim.R` will (1) set random seed according to argument `seed`, (2) generate data according to argument `dist`, (3) compute the primed-indexed average estimator in class and the classical sample average estimator for each simulation replicate, (4) report the average mean squared error (MSE)
+$$
+  \frac{\sum_{r=1}^{\text{rep}} (\widehat \mu_r - \mu_{\text{true}})^2}{\text{rep}}
+$$
+for both methods.
+
+    Answer: Expanded code is stored in runSimR1.R and the following shell command will call the R     Script program:
+    ```{bash}
+    Rscript runSimR.R seed=1 n=20 dist="'gaussian'" rep=100
+    ```
+
+2. Modify the [`autoSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/autoSim.R) script to run simulations with combinations of sample sizes `nVals = seq(100, 500, by=100)` and distributions `distTypes = c("gaussian", "t1", "t5")` and write output to appropriately named files. Use `rep = 50`, and `seed = 280`. 
+
+3. Write an R script to collect simulation results from output files and print average MSEs in a table of format
+
+| $n$ | Method   | $t_1$ | $t_5$ | Gaussian |
+|-----|----------|-------|-------|----------|
+| 100 | PrimeAvg |       |       |          |
+|     | SampAvg  |       |       |          |
+| 200 | PrimeAvg |       |       |          |
+|     | SampAvg  |       |       |          |
+| 300 | PrimeAvg |       |       |          |
+|     | SampAvg  |       |       |          |
+| 400 | PrimeAvg |       |       |          |
+|     | SampAvg  |       |       |          |
+| 500 | PrimeAvg |       |       |          |
+|     | SampAvg  |       |       |          |
 
