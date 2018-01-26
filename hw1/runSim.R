@@ -1,3 +1,11 @@
+## Creating these dummy objects for passing arguments from autoSim.R, because
+## I could not pass a double quotation mark and a single quotation mark within
+## the argument string, so they had to be passed as R objects
+
+gaussian = "gaussian"
+t1 = "t1"
+t5 = "t5"
+
 ## parsing command arguments
 for (arg in commandArgs(TRUE)) {
   eval(parse(text=arg))
