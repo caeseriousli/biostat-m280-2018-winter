@@ -80,7 +80,10 @@ Use Linux shell commands to answer following questions.
 
     Answer: The shell command is knitted below:
     ```{bash}
-    awk '{ if ( $5 == 1 ) sex = "M"; else sex = "F" } { print $1 "," substr($2, 5, 8) "," substr($3, 5,     8) "," substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }' /home/m280-data/hw1/merge-geno.fam
+    awk '{ if ( $5 == 1 ) sex = "M"; else sex = "F" } 
+    { print $1 "," substr($2, 5, 8) "," substr($3, 5,     8) "," 
+    substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }' 
+    /home/m280-data/hw1/merge-geno.fam
     ```
 
 ## Q3. R Batch Run
