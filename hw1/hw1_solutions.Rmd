@@ -96,12 +96,17 @@ $$
 $$
 for both methods.
 
-    Answer: Expanded code is stored in runSimR1.R and the following shell command will call the R     Script program:
+    Answer: Expanded code is stored in runSimR1.R and the following shell command will call the R     Script program.
     ```{bash}
     Rscript runSim.R seed=1 n=20 dist="'gaussian'" rep=100
     ```
 
 2. Modify the [`autoSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/autoSim.R) script to run simulations with combinations of sample sizes `nVals = seq(100, 500, by=100)` and distributions `distTypes = c("gaussian", "t1", "t5")` and write output to appropriately named files. Use `rep = 50`, and `seed = 280`. 
+
+    Answer: Code modified and saved in the working directory. Following bash command will execute autoSim.R.
+    ```{bash}
+    Rscript autoSim.R
+    ```
 
 3. Write an R script to collect simulation results from output files and print average MSEs in a table of format
 
@@ -118,3 +123,7 @@ for both methods.
 | 500 | PrimeAvg |       |       |          |
 |     | SampAvg  |       |       |          |
 
+    Answer: Code written and saved in file named "readFiles.R". Following bash command will execute readFiles.R
+    ```{bash}
+    Rscript readFiles.R
+    ```
