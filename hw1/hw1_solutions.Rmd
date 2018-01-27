@@ -1,7 +1,7 @@
 ---
 title: "Biostat M280 HW1 Solutions"
 author: "Caesar (Zexuan) Li"
-date: "Due Jan 26 @ 11:59PM"
+date: "Due Feb 02 @ 11:59PM"
 output: html_document
 ---
 
@@ -60,7 +60,9 @@ Use Linux shell commands to answer following questions.
 
     Answer: The number of SNP's located within MAP4 gene is shown below:
     ```{bash}
-    awk '{ if ( $4 >= 47892180 && $4 <= 48130769 ) print}' /home/m280-data/hw1/merge-geno.bim | awk        'END { print NR }'
+    awk '
+      { if ( $4 >= 47892180 && $4 <= 48130769 ) print }
+      ' /home/m280-data/hw1/merge-geno.bim | awk 'END { print NR }'
     ```
 
 4. Statistical geneticists often have to reformat a data set to feed into various analysis programs. For example, to use the Mendel software <http://www.genetics.ucla.edu/software/mendel>, we have to reformat the data set to be read by Mendel.
@@ -71,7 +73,13 @@ Use Linux shell commands to answer following questions.
       
     Answer: The shell command is knitted below:
     ```{bash}
-    awk 'BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER.\n8348674 = NUMBER OF SNPS LISTED HERE."     > "Mendel_SNP" } { print $2 "," $1 "," $4 >> "Mendel_SNP" }' /home/m280-data/hw1/merge-geno.bim
+    awk '
+      BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER." > "Mendel_SNP"
+      print "8348674  = NUMBER OF SNPS LISTED HERE." >> "Mendel_SNP" } 
+      { print $2 "," $1 "," $4 >> "Mendel_SNP" }
+      ' /home/m280-data/hw1/merge-geno.bim
+    
+    head Mendel_SNP
     ```
     
     - Mendel's pedigree file is similar to the plink `fam` file but has format  
@@ -80,10 +88,13 @@ Use Linux shell commands to answer following questions.
 
     Answer: The shell command is knitted below:
     ```{bash}
-    awk '{ if ( $5 == 1 ) sex = "M"; else sex = "F" } 
-    { print $1 "," substr($2, 5, 8) "," substr($3, 5,     8) "," 
-    substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }' 
-    /home/m280-data/hw1/merge-geno.fam
+    awk '
+      { if ( $5 == 1 ) sex = "M"; else sex = "F" } 
+      { print $1 "," substr($2, 5, 8) "," substr($3, 
+      5, 8) "," substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }
+      ' /home/m280-data/hw1/merge-geno.fam
+    
+    head Mendel_pedigree
     ```
 
 ## Q3. R Batch Run
@@ -108,20 +119,7 @@ for both methods.
     Rscript autoSim.R
     ```
 
-3. Write an R script to collect simulation results from output files and print average MSEs in a table of format
-
-| $n$ | Method   | $t_1$ | $t_5$ | Gaussian |
-|-----|----------|-------|-------|----------|
-| 100 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 200 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 300 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 400 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
-| 500 | PrimeAvg |       |       |          |
-|     | SampAvg  |       |       |          |
+3. Write an R script to collect simulation results from output files and print average MSEs in a table
 
     Answer: Code written and saved in file named "readFiles.R". Following bash command will execute readFiles.R
     ```{bash}
