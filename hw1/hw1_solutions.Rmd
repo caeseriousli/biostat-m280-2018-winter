@@ -122,6 +122,6 @@ for both methods.
 3. Write an R script to collect simulation results from output files and print average MSEs in a table
 
     Answer: Code written and saved in file named "readFiles.R". Following bash command will execute readFiles.R
-    ```{bash}
+    ```{bash, results = "asis"}
     Rscript readFiles.R
     ```

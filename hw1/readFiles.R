@@ -30,7 +30,7 @@ for (n in nVals) {
   }
   finalTable = rbind(finalTable, tempTable)
 }
-
-print(finalTable, row.names = FALSE)
+library(knitr)
+kable(finalTable, row.names = FALSE)
 
 

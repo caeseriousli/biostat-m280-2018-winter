@@ -29,18 +29,39 @@ estMeanPrimes = function (x) {
   return (mean(x[ind]))
 }
 
-# Check which distribution we are supposed to use and generate sample
-set.seed(seed)
-if (dist == "gaussian")
-  x = rnorm(n)
-if (dist == "t1")
-  x = rt(n, df = 1)
-if (dist == "t5")
-  x = rt(n, df = 5)
-
+# Set which distribution we are supposed to use to generate samples
+if (dist == "gaussian") {
+  sim_prime = function() {
+    x = rnorm(n)
+    return(estMeanPrimes(x))
+  }
+  sim_mean = function() {
+    x = rnorm(n)
+    return(mean(x))
+  } 
+} else if (dist == "t1") {
+  sim_prime = function() {
+    x = rt(n, df = 1)
+    return(estMeanPrimes(x))
+  }
+  sim_mean = function() {
+    x = rt(n, df = 1)
+    return(mean(x))
+  } 
+} else if (dist == "t5") {
+  sim_prime = function() {
+    x = rt(n, df = 5)
+    return(estMeanPrimes(x))
+  }
+  sim_mean = function() {
+    x = rt(n, df = 5)
+    return(mean(x))
+  }
+}
 # All mean squared errors stored in a variable
-all_prime = replicate(rep, estMeanPrimes(x))
-all_classic = replicate(rep, mean(x))
+set.seed(seed)
+all_prime = replicate(rep, sim_prime())
+all_classic = replicate(rep, sim_mean())
 
 # Print average MSE's for both prime-indexed and classic simulations
 ## Note that since the true mean is zero for all distributions, 
