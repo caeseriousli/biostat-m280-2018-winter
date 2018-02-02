@@ -1,6 +1,6 @@
 # autoSim.R
 nVals = seq(100, 500, by=100)
-distTypes = c("gaussian", "t1", "t5")
+distTypes = c("t1", "t5", "gaussian")
 for (n in nVals) {
   # add another for loop for distribution types
   for (distr in distTypes) {

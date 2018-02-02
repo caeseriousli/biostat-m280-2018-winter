@@ -31,40 +31,27 @@ estMeanPrimes = function (x) {
 
 # Set which distribution we are supposed to use to generate samples
 if (dist == "gaussian") {
-  sim_prime = function() {
+  both_means = function() {
     x = rnorm(n)
-    return(estMeanPrimes(x))
+    return(c(estMeanPrimes(x), mean(x)))
   }
-  sim_mean = function() {
-    x = rnorm(n)
-    return(mean(x))
-  } 
 } else if (dist == "t1") {
-  sim_prime = function() {
+  both_means = function() {
     x = rt(n, df = 1)
-    return(estMeanPrimes(x))
+    return(c(estMeanPrimes(x), mean(x)))
   }
-  sim_mean = function() {
-    x = rt(n, df = 1)
-    return(mean(x))
-  } 
 } else if (dist == "t5") {
-  sim_prime = function() {
+  both_means = function() {
     x = rt(n, df = 5)
-    return(estMeanPrimes(x))
-  }
-  sim_mean = function() {
-    x = rt(n, df = 5)
-    return(mean(x))
+    return(c(estMeanPrimes(x), mean(x)))
   }
 }
 # All mean squared errors stored in a variable
 set.seed(seed)
-all_prime = replicate(rep, sim_prime())
-all_classic = replicate(rep, sim_mean())
+all = replicate(rep, both_means())
 
 # Print average MSE's for both prime-indexed and classic simulations
 ## Note that since the true mean is zero for all distributions, 
 ##   we simply square the vector
-cat(c("PrimeAvg: ", round(sum((all_prime)^2)/rep, 5)), "\n")
-cat(c("SampAvg: ", round(sum((all_classic)^2)/rep, 5)), "\n")
+cat(c("PrimeAvg: ", round(sum((all[1, ])^2)/rep, 5)), "\n")
+cat(c("SampAvg: ", round(sum((all[2, ])^2)/rep, 5)), "\n")

@@ -2,7 +2,7 @@
 
 # Read txt files in the current working directory
 nVals = seq(100, 500, by=100)
-distTypes = c("gaussian", "t1", "t5")
+distTypes = c("t1", "t5", "gaussian")
 
 # Create a data frame to store all data
 finalTable = matrix(data = NA, nrow = 0, ncol = 5)
