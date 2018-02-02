@@ -1,0 +1,163 @@
+---
+title: "Biostat M280 HW1 Solutions"
+author: "Caesar (Zexuan) Li"
+date: "Due Feb 02 @ 11:59PM"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = TRUE)
+```
+
+## Q1. Git/GitHub
+
+1. Apply for the [Student Developer Pack](https://education.github.com/pack) at GitHub using your UCLA email.
+
+    Answer: Yes I did, and my username is caeseriousli.
+
+2. Create a **private** repository `biostat-m280-2018-winter` and add `Hua-Zhou` and `juhkim111` as your collaborators with write permission.
+
+    Answer: Yes I did.
+
+3. Top directories of the repository should be `hw1`, `hw2`, ... Maintain two branches `master` and `develop`. The `develop` branch will be your main playground, the place where you develop solution (code) to homework problems and write up report. The `master` branch will be your presentation area. Submit your homework files (R markdown file `Rmd`, `html` file converted from R markdown, all code and data sets to reproduce results) in `master` branch.
+
+    Answer: Yes I did.
+
+4. After each homework due date, teaching assistant and instructor will check out your master branch for grading. Tag each of your homework submissions with tag names `hw1`, `hw2`, ... Tagging time will be used as your submission time. That means if you tag your `hw1` submission after deadline, penalty points will be deducted for late submission.
+
+    Answer: Yes I understood.
+
+## Q2. Linux Shell Commands
+
+Use Linux shell commands to answer following questions. 
+
+1. How many persons are in the data set (statisticians call this `n`)? How many SNPs are in the data set (statisticians call this `p`)?
+
+    Answer: Number of persons in this data set is:
+    ```{bash}
+    awk 'END { print NR }' /home/m280-data/hw1/merge-geno.fam
+    ```
+
+    Answer: Number of SNP's in the data set is:
+    ```{bash}
+    awk 'END { print NR }' /home/m280-data/hw1/merge-geno.bim
+    ```
+
+2. Which chromosomes does this data set contain? How many SNPs are in each chromosome?
+
+    Answer: The chromosome numbers are shown below:
+    ```{bash}
+    awk '!seen[$1]++ { print $1 }' /home/m280-data/hw1/merge-geno.bim
+    ```
+
+    Answer: Numbers of SNP's for each chromosome are shown below:
+    ```{bash}
+    awk '{ print $1 }' /home/m280-data/hw1/merge-geno.bim | sort -n |  uniq -c
+    ```
+
+3. MAP4 (microtubule-associated protein 4) is a gene on chromosome 3 spanning positions 47,892,180 bp -- 48,130,769 bp. How many SNPs are located within MAP4 gene?
+
+    Answer: The number of SNP's located within MAP4 gene is shown below:
+    ```{bash}
+    awk '
+      { if ( $4 >= 47892180 && $4 <= 48130769 ) print }
+      ' /home/m280-data/hw1/merge-geno.bim | awk 'END { print NR }'
+    ```
+
+4. Statistical geneticists often have to reformat a data set to feed into various analysis programs. For example, to use the Mendel software <http://www.genetics.ucla.edu/software/mendel>, we have to reformat the data set to be read by Mendel.
+
+      - Mendel's SNP definition file is similar to the plink `bim` file but has format  
+      `SNP ID`, `Chromosome`, `Base Pair Position`  
+      with each field separated by a comma. Write a Linux shell command to convert `merge-geno.bim` to Mendel SNP definition file.
+      
+    Answer: The shell command is knitted below:
+    ```{bash}
+    awk '
+      BEGIN { print "    2.40  = FILE FORMAT VERSION NUMBER." > "Mendel_SNP"
+      print "8348674  = NUMBER OF SNPS LISTED HERE." >> "Mendel_SNP" } 
+      { print $2 "," $1 "," $4 >> "Mendel_SNP" }
+      ' /home/m280-data/hw1/merge-geno.bim
+    
+    head Mendel_SNP
+    ```
+    
+    - Mendel's pedigree file is similar to the plink `fam` file but has format  
+    `Family ID`, `Person ID`, `Father ID`, `Mother ID`, `Sex` coded as M or F, `Twin Status`  
+    with each field separated by a comma. Write a Linux shell command to convert `merge-geno.fam` to Mendel pedigree file. Since twin status is not available in plink format, we put nothing for that field. Also Mendel limits Person ID to have length less than or equal to 8 characters, so we have to strip the string `T2DG` from the IDs.
+
+    Answer: The shell command is knitted below:
+    ```{bash}
+    awk '
+      { if ( $5 == 1 ) sex = "M"; else sex = "F" } 
+      { print $1 "," substr($2, 5, 8) "," substr($3, 
+      5, 8) "," substr($4, 5, 8) "," sex "," > "Mendel_pedigree" }
+      ' /home/m280-data/hw1/merge-geno.fam
+    
+    head Mendel_pedigree
+    ```
+
+## Q3. R Batch Run
+
+In class we discussed using R to organize simulation studies. 
+
+1. Expand the [`runSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/runSim.R) script to include arguments `seed` (random seed), `n` (sample size), `dist` (distribution) and `rep` (number of simulation replicates). When `dist="gaussian"`, generate data from standard normal; when `dist="t1"`, generate data from t-distribution with degree of freedom 1 (same as Cauchy distribution); when `dist="t5"`, generate data from t-distribution with degree of freedom 5. Calling `runSim.R` will (1) set random seed according to argument `seed`, (2) generate data according to argument `dist`, (3) compute the primed-indexed average estimator in class and the classical sample average estimator for each simulation replicate, (4) report the average mean squared error (MSE)
+$$
+  \frac{\sum_{r=1}^{\text{rep}} (\widehat \mu_r - \mu_{\text{true}})^2}{\text{rep}}
+$$
+for both methods.
+
+    Answer: Expanded code is stored in runSimR1.R and the following shell command will call the R     Script program.
+    ```{bash}
+    Rscript runSim.R seed=1 n=20 dist="'gaussian'" rep=100
+    ```
+
+2. Modify the [`autoSim.R`](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/02-linux/autoSim.R) script to run simulations with combinations of sample sizes `nVals = seq(100, 500, by=100)` and distributions `distTypes = c("gaussian", "t1", "t5")` and write output to appropriately named files. Use `rep = 50`, and `seed = 280`. 
+
+    Answer: Code modified and saved in the working directory. Following bash command will execute autoSim.R.
+    ```{bash}
+    Rscript autoSim.R
+    ```
+
+3. Write an R script to collect simulation results from output files and print average MSEs in a table
+
+    Answer: Code written and saved in file named "readFiles.R". Following bash command will execute readFiles.R, and R code pasted down below.
+    ```{bash, results = "asis"}
+    Rscript readFiles.R
+    ```
+    ```{R, echo = TRUE, eval = FALSE}
+    # Read txt files and output average MSE table
+
+    # Read txt files in the current working directory
+    nVals = seq(100, 500, by=100)
+    distTypes = c("t1", "t5", "gaussian")
+    
+    # Create a data frame to store all data
+    finalTable = matrix(data = NA, nrow = 0, ncol = 5)
+    colnames(finalTable) = c("n", "Method", "t1", "t5", "Gaussian")
+    finalTable = as.data.frame(finalTable)
+    
+    for (n in nVals) {
+      # create a temperary table for each sample size n to store values read from files
+      tempTable = matrix(data = NA, nrow = 2, ncol = 5)
+      colnames(tempTable) = c("n", "Method", "t1", "t5", "Gaussian")
+      # set up a column index counter (iterator) to help input value to the temp table
+      # it iterates from 3 to 5 and back to 3, to fill in values from 3 distributions
+      counter = 3
+      for (distr in distTypes) {
+        # "Borrowing" code from autoSim.R to read in relevant files
+        oFile = paste("n", n, "_", distr, ".txt", sep="")
+        reading = read.table(oFile, header=FALSE, 
+                              stringsAsFactors=FALSE)
+        # 
+        tempTable[, 1] = n
+        tempTable[, 2] = reading[, 1]
+        tempTable[, counter] = reading[, 2]
+        # counter +1 so the next file it reads, values will be stored in next column
+        counter = counter + 1
+      }
+      finalTable = rbind(finalTable, tempTable)
+    }
+    library(knitr)
+    kable(finalTable, row.names = FALSE)
+    ```
