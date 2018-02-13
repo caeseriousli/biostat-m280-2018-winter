@@ -12,18 +12,23 @@ Read [Chapter 7](http://r4ds.had.co.nz/exploratory-data-analysis.html) (Explorat
 # Exercise 7.3.4
 ## Number 1
 
-    ```{R}
-    library(tidyverse)
+```{R}
+library(tidyverse)
+library(reshape)
+xyz = melt(data.frame(diamonds$x, diamonds$y, diamonds$z))
+ggplot(data = xyz, aes(x = value, y = ..count.., colour = variable)) +
+  geom_freqpoly(binwidth = 0.1) +
+  labs(x = "Measure of the Dimension (mm)", y = "Frequency", 
+       title = "Frequency Polygon of Diamond Dimensions") +
+  xlim(0, 10)
+```
     
-    ggplot(data = diamonds) +
-      geom_freqpoly(binwidth = 0.1, color = "blue", 
-                    aes(x = diamonds$x, y = ..count..), show.legend = TRUE) +
-      geom_freqpoly(binwidth = 0.1, color = "red", 
-                    aes(x = diamonds$y, y = ..count..), show.legend = TRUE) +
-      geom_freqpoly(binwidth = 0.1, color = "green", 
-                    aes(x = diamonds$z, y = ..count..), show.legend = TRUE) +
-      xlim(0, 10)
-    ```
+    Answer: In order to compare and contrast, I layer the distributions of x, y, and z in the same graph. We can see that dimension x and y have very similar distribution while z has a distribution with shorter measure (in mm) than the other two. Therefore we might infer that x and y might be the length and width of the diamond (which is close to a square or circle). Z is the depth, which tends to be smaller than x and y.
+    
+## Number 2
+
+
+
 
 ## Q2 (optional)
 
