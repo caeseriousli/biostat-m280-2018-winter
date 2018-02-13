@@ -1,0 +1,39 @@
+---
+title: "Homework 2 Solutions"
+author: "Caesar (Zexuan) Li"
+date: "2/12/2018"
+output: html_document
+---
+
+## Q1
+
+Read [Chapter 7](http://r4ds.had.co.nz/exploratory-data-analysis.html) (Exploratory Data Analysis) of _R for Data Science_ and do exercises 7.3.4, 7.4.1, 7.5.1.1, 7.5.2.1, and 7.5.3.1.
+
+# Exercise 7.3.4
+## Number 1
+
+    ```{R}
+    library(tidyverse)
+    
+    ggplot(data = diamonds) +
+      geom_freqpoly(binwidth = 0.1, color = "blue", 
+                    aes(x = diamonds$x, y = ..count..), show.legend = TRUE) +
+      geom_freqpoly(binwidth = 0.1, color = "red", 
+                    aes(x = diamonds$y, y = ..count..), show.legend = TRUE) +
+      geom_freqpoly(binwidth = 0.1, color = "green", 
+                    aes(x = diamonds$z, y = ..count..), show.legend = TRUE) +
+      xlim(0, 10)
+    ```
+
+## Q2 (optional)
+
+Read [Chapter 23](http://r4ds.had.co.nz/model-basics.html) (Model Basics) and [Chapter 24](http://r4ds.had.co.nz/model-building.html) (Model Building) of _R for Data Science_ and do exercises 24.2.3 and 24.3.5.
+
+## Q3
+
+Redo HW1 Q2 using tidyverse.
+
+## Q4 (optional)
+
+Redo HW1 Q3 on Hoffman2, except now we want to submit each `runSum.R` job to a different node in the cluster.
+
