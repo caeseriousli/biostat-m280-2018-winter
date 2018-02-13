@@ -27,8 +27,31 @@ ggplot(data = xyz, aes(x = value, y = ..count.., colour = variable)) +
     
 ## Number 2
 
+```{R}
+library(tidyverse)
+library(reshape)
 
+ggplot(data = diamonds, aes(x = price, y = ..count..)) +
+  geom_histogram(binwidth = 20) + # binwidth was set to 50, 100, and 200 as well
+  labs(x = "Price (Dollars)", y = "Frequency", 
+       title = "Frequency Polygon of Diamond Price", 
+       subtitle = "Binwidths Set to $100") 
+```
 
+    Answer: I plotted price distribution histogram. We can see that the distribution is right-skewed, with most of the diamond pieces priced around $1000. Also note that there is a frequency "gap" at around $1500 - $1600 price range. There aren't many diamond pieces at this price range, compared to its neighboring diamond frequencies. Initially I set the binwidth to 200 and the gap was not visible, because its absence is simply "blended in"" with other bins. Therefore we need to be careful when setting the binwidth. Usually the smaller the better to make the plot smoother.
+
+## Number 3
+
+```{R}
+library(tidyverse)
+library(reshape)
+
+a <- diamonds %>% select(carat) %>% filter(carat == 0.99)
+b <- diamonds %>% select(carat) %>% filter(carat == 1)
+cat(c("Number of diamonds that are 0.99 carat ", nrow(a), "\n"))
+cat(c("Number of diamonds that are 1 carat ", nrow(b), "\n"))
+```
+    Answer: I piped filter() and select() from the dplyr package (select only the relevant column first to make it less tasking for the computer, since we only care about carat). Note that there are only 23 pieces 0.99 cara diamonds but 1558 pieces of 1 carats. There could be many reasons but I might speculate that it is due to the fact that people usually prefer integer carats (easier to sell).
 
 ## Q2 (optional)
 
