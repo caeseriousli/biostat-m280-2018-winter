@@ -51,7 +51,42 @@ b <- diamonds %>% select(carat) %>% filter(carat == 1)
 cat(c("Number of diamonds that are 0.99 carat ", nrow(a), "\n"))
 cat(c("Number of diamonds that are 1 carat ", nrow(b), "\n"))
 ```
-    Answer: I piped filter() and select() from the dplyr package (select only the relevant column first to make it less tasking for the computer, since we only care about carat). Note that there are only 23 pieces 0.99 cara diamonds but 1558 pieces of 1 carats. There could be many reasons but I might speculate that it is due to the fact that people usually prefer integer carats (easier to sell).
+    Answer: I piped filter() and select() from the dplyr package (select only the relevant column first to make it less tasking for the computer, since we only care about carat). Note that there are only 23 pieces 0.99 cara diamonds but 1558 pieces of 1 carats. There could be many reasons but I might speculate that it is due to the fact that people usually prefer integer(whole) carats (easier to sell). 
+
+
+## Number 4
+
+```{R}
+library(tidyverse)
+library(reshape)
+
+ggplot(data = diamonds, aes(x = price, y = ..count..)) +
+  geom_histogram(binwidth = 20) +
+  labs(x = "Price (Dollars)", y = "Frequency", 
+       title = "Frequency Polygon of Diamond Price", 
+       subtitle = "Binwidths Set to $100")+
+  xlim(250, 1700) +
+  ylim(0, 1500)
+  
+ggplot(data = diamonds, aes(x = price, y = ..count..)) +
+  geom_histogram() +
+  labs(x = "Price (Dollars)", y = "Frequency", 
+       title = "Frequency Polygon of Diamond Price", 
+       subtitle = "Binwidths Set to $100") 
+
+ggplot(data = diamonds, aes(x = price, y = ..count..)) +
+  geom_histogram(binwidth = 20) +
+  labs(x = "Price (Dollars)", y = "Frequency", 
+       title = "Frequency Polygon of Diamond Price", 
+       subtitle = "Binwidths Set to $100") +
+  coord_cartesian(xlim = c(250, 1700), ylim = c(0, 1500), expand = TRUE)
+```
+    Answer: use number 2 as an example. I first zoomed in using xlim and ylim, with binwidth = 20. As we can see we get a zoomed-in plot with great details in the price range, including the "gap" discussed earlier. In the second plot I did not specify binwidth, and R automatically set the number of bins to 30 and warned me to set up binwidth. 30 bins are too few and we can see that the bins are way too thick for us to see the real distribution. Therefore we should always set a proper binwidth. And lastly, I used coord_cartesian() to zoom in, which basically accomplishes the same thing as ylim and xlim did. However note that when we use coord_cartesian there's no gap on the righthand side of the distribution. The graph continues to the edge of the graph. Therefore coord_cartesian() is a more proper tool for zooming in, as it tells you where the plot gets "cut off".
+
+
+# Exercise 7.4.1
+
+
 
 ## Q2 (optional)
 
