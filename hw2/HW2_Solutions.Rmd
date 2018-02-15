@@ -208,6 +208,45 @@ ggplot(data = diamonds, aes(x = cut, y = carat)) +
 
 ## Number 4
 
+```{R}
+if (!"lvplot" %in% rownames(installed.packages()))  
+  install.packages("lvplot", repos="http://cran.rstudio.com/")
+
+library(lvplot)
+ggplot(data = diamonds, aes(x = cut, y = price)) +
+  geom_lv()
+```
+
+    Answer: the letter value plot is smoother than the box plot since it does not only show a few key quantiles. It shows many quantiles that sufficiently visualize the distribution.
+
+## Number 5
+
+```{R}
+ggplot(data = diamonds, aes(x = cut, y = price)) +
+  geom_violin() +
+  coord_flip()
+
+ggplot(data = diamonds, aes(x = price)) +
+  geom_histogram(binwidth = 200) +
+  facet_wrap(~ cut, scales = "free_y", ncol = 1)
+
+ggplot(data = diamonds, aes(x = price, y = ..density.., colour = cut)) +
+  geom_freqpoly(binwidth = 200)
+```
+
+    Answer: I have plotted all three graphs above. We can see that geom_violin gives the smoothest graph, therefore the most accurate (scale-wise) distribution. It's useful when we only want to see what kind of distribution each category has. However it's difficult to compare distributions in a violin plot. Similarly, multiple histograms do a good job visualizing distributions. They are not as smooth as violin plot, but, if binwidth set correctly, might be able to show some small "gaps" in the distribution that was not displayed in the violin plot (violin tends to "smooth out" the plot by filling in the gaps). However it's still not as easy to compare and contrast distributions than the frequency polygon plot. If one wants to compare density at a specific price point, they can easily find out how high each category is. However its weakness is violin and histogram's strength; frequency polygons are not easy for distribution visualization individually since all the lines are layerred over each other.
+
+
+## Number 6
+
+```{R}
+if (!"ggbeeswarm" %in% rownames(installed.packages()))  
+  install.packages("ggbeeswarm", repos="http://cran.rstudio.com/")
+
+library(ggbeeswarm)
+ggplot(data = mpg, aes(x = reorder(class, hwy, FUN = median), y = hwy)) +
+  geom_beeswarm()
+```
 
 ## Q2 (optional)
 
