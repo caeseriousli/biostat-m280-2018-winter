@@ -13,8 +13,13 @@ Read [Chapter 7](http://r4ds.had.co.nz/exploratory-data-analysis.html) (Explorat
 ## Number 1
 
 ```{R}
+if (!"tidyverse" %in% rownames(installed.packages()))  
+  install.packages("tidyverse", repos="http://cran.rstudio.com/")
+if (!"reshape2" %in% rownames(installed.packages()))  
+  install.packages("reshape2", repos="http://cran.rstudio.com/")
+
 library(tidyverse)
-library(reshape)
+library(reshape2)
 xyz = melt(data.frame(diamonds$x, diamonds$y, diamonds$z))
 ggplot(data = xyz, aes(x = value, y = ..count.., colour = variable)) +
   geom_freqpoly(binwidth = 0.1) +
@@ -29,7 +34,7 @@ ggplot(data = xyz, aes(x = value, y = ..count.., colour = variable)) +
 
 ```{R}
 library(tidyverse)
-library(reshape)
+library(reshape2)
 
 ggplot(data = diamonds, aes(x = price, y = ..count..)) +
   geom_histogram(binwidth = 20) + # binwidth was set to 50, 100, and 200 as well
@@ -44,13 +49,14 @@ ggplot(data = diamonds, aes(x = price, y = ..count..)) +
 
 ```{R}
 library(tidyverse)
-library(reshape)
+library(reshape2)
 
 a <- diamonds %>% select(carat) %>% filter(carat == 0.99)
 b <- diamonds %>% select(carat) %>% filter(carat == 1)
-cat(c("Number of diamonds that are 0.99 carat ", nrow(a), "\n"))
-cat(c("Number of diamonds that are 1 carat ", nrow(b), "\n"))
+cat(c("# Number of diamonds that are 0.99 carat:  ", nrow(a), "\n"))
+cat(c("# Number of diamonds that are 1 carat:  ", nrow(b), "\n"))
 ```
+
     Answer: I piped filter() and select() from the dplyr package (select only the relevant column first to make it less tasking for the computer, since we only care about carat). Note that there are only 23 pieces 0.99 cara diamonds but 1558 pieces of 1 carats. There could be many reasons but I might speculate that it is due to the fact that people usually prefer integer(whole) carats (easier to sell). 
 
 
@@ -58,7 +64,7 @@ cat(c("Number of diamonds that are 1 carat ", nrow(b), "\n"))
 
 ```{R}
 library(tidyverse)
-library(reshape)
+library(reshape2)
 
 ggplot(data = diamonds, aes(x = price, y = ..count..)) +
   geom_histogram(binwidth = 20) +
@@ -81,6 +87,7 @@ ggplot(data = diamonds, aes(x = price, y = ..count..)) +
        subtitle = "Binwidths Set to $20") +
   coord_cartesian(xlim = c(250, 1700), ylim = c(0, 1500), expand = TRUE)
 ```
+
     Answer: use number 2 as an example. I first zoomed in using xlim and ylim, with binwidth = 20. As we can see we get a zoomed-in plot with great details in the price range, including the "gap" discussed earlier. In the second plot I did not specify binwidth, and R automatically set the number of bins to 30 and warned me to set up binwidth. 30 bins are too few and we can see that the bins are way too thick for us to see the real distribution. Therefore we should always set a proper binwidth. And lastly, I used coord_cartesian() to zoom in, which basically accomplishes the same thing as ylim and xlim did. However note that when we use coord_cartesian there's no gap on the righthand side of the distribution. The graph continues to the edge of the graph. Therefore coord_cartesian() is a more proper tool for zooming in, as it tells you where the plot gets "cut off".
 
 
@@ -89,7 +96,7 @@ ggplot(data = diamonds, aes(x = price, y = ..count..)) +
 
 ```{R}
 library(tidyverse)
-library(reshape)
+library(reshape2)
 
 a <- diamonds %>% mutate(price = ifelse(price > 15000, NA, price))
 ggplot(data = a, aes(x = price, y = ..count..)) +
@@ -106,9 +113,100 @@ ggplot(data = b, aes(x = cut)) +
        title = "Bar Plot of Diamonds by Cut", 
        subtitle = "NA Values Added")
 ```
+
     Answer: We can see that for histograms, R simply removes all the missing values, with a warning message, "Removed 1655 rows containing non-finite values (stat_bin)." However in the bar plot, R gives all NA values a new category and display its frequency in the plot.
 
 ## Number 2
+
+```{R}
+a = c(1, 2, 3, NA, 5, NA)
+cat(c("# Testing on Data {1, 2, 3, NA, 5, NA}\n"))
+cat(c("# Mean() without na.rm:  ", mean(a), "\n"))
+cat(c("# Mean() with na.rm:  ", mean(a, na.rm = TRUE), "\n"))
+cat(c("# Sum() without na.rm:  ", sum(a), "\n"))
+cat(c("# Sum() with na.rm:  ", sum(a, na.rm = TRUE), "\n"))
+```
+
+    Answer: as we can see from the results above, if we do not add "na.rm = TRUE" option, R does not automatically remove missing values and therefore the result is NA. Thus we have to use na.rm to remove all missing values prior to the calculation in order to get the correct results for mean() and sum()
+    
+# Exercise 7.5.1.1
+## Number 1
+
+```{R}
+if (!"nycflights13" %in% rownames(installed.packages()))  
+  install.packages("nycflights13", repos="http://cran.rstudio.com/")
+
+nycflights13::flights %>% 
+  mutate(
+    cancelled = is.na(dep_time),
+    sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60
+  ) %>% 
+  ggplot(aes(x = cancelled, y = sched_dep_time)) +
+  geom_boxplot() +
+  labs(x = "If It Was Cancelled?", y = "Scheduled Departure Time", 
+       title = "Scheduled Departure Time Box Plot", 
+       subtitle = "Cancelled Against Non-cancelled") 
+```
+
+    Answer: use the mutate() code provided in 7.4 we create new variables for scheduled departure time and a cancellation categorical variable, only this time we use bax plot to have a better comparison in the two groups' means and quantiles.
+
+
+## Number 2
+
+```{R}
+xyzp <- melt(diamonds, id.vars = "price", measure.vars = c("x", "y", "z")) 
+ggplot(data = xyzp, aes(x = value, y = price, colour = variable)) +
+  geom_point() +
+  labs(x = "Dimension Measurement (mm)", y = "Price (Dollars)", 
+       title = "Dimensions to Diamond Price Scatter Plot", 
+       subtitle = "Limit 10 mm") +
+  coord_cartesian(xlim = c(0, 15), ylim = c(0, 20000), expand = TRUE)
+
+ggplot(data = diamonds, aes(y = price)) +
+  geom_point(aes(x = carat)) +
+  labs(x = "Carat", y = "Price (Dollars)", 
+       title = "Carat to Diamond Price Scatter Plot") 
+
+ggplot(data = diamonds, aes(y = price)) +  
+  geom_point(aes(x = clarity))
+
+ggplot(data = diamonds, aes(y = price)) +  
+  geom_point(aes(x = depth)) 
+
+ggplot(data = diamonds, aes(x = cut, y = carat)) +  
+  geom_boxplot() +
+  labs(x = "Cut", y = "Carat", 
+       title = "Carat Distribution Box Plots by Cut") 
+```
+
+    Answer: after comparing scatter plots from multiple variables to price, we may find that carat is the one most related to price (a positive relationship). Therefore I plotted boxplot of carat by different cuts. Then from the box plots upper there we can see that "fair"" and "good"" (low quality) diamonds have higher means and quantiles than those of "very good" and "ideal" diamonds. Although "Premium" has a higher mean than its neighbors (still lower than that of "Fair"), we can conclude that many low quality diamonds have a higher carat. Therefore it successfully explains why some bigger diamonds are related to lower prices.
+    
+## Number 3
+
+```{R}
+if (!"ggstance" %in% rownames(installed.packages()))  
+  install.packages("ggstance", repos="http://cran.rstudio.com/")
+
+library("ggstance")
+
+ggplot(data = diamonds) +
+  geom_boxploth(mapping = aes(y = cut, x = carat)) +
+  labs(title = "Carat Distribution Box Plots by Cut")
+
+# Compared to 
+ggplot(data = diamonds, aes(x = cut, y = carat)) +  
+  geom_boxplot() +
+  labs(x = "Cut", y = "Carat", 
+       title = "Carat Distribution Box Plots by Cut") +
+  coord_flip()
+```
+
+    Answer: using the bar plot I used in the previous question. Using coord_flip() and using package "ggstance" accomplish the same thing. They both flipped the axes. With coord_flip() we do not need to switch variable arguments but with ggstance we do need to reassign the axis aesthetics
+
+
+## Number 4
 
 
 ## Q2 (optional)
