@@ -136,6 +136,7 @@ cat(c("# Sum() with na.rm:  ", sum(a, na.rm = TRUE), "\n"))
 if (!"nycflights13" %in% rownames(installed.packages()))  
   install.packages("nycflights13", repos="http://cran.rstudio.com/")
 
+library(nycflights13)
 nycflights13::flights %>% 
   mutate(
     cancelled = is.na(dep_time),
@@ -283,9 +284,44 @@ diamonds %>%
 
 ## Number 2
 
+```{R}
+library(nycflights13)
 
+flights %>%
+  filter(dep_delay > 0) %>% # negative delays are not delays so we filter
+  group_by(dest, month) %>%
+  mutate(ave_delay =  mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = factor(month), y = dest, fill = ave_delay)) +
+    geom_tile() +
+    labs(x = "Month", y = "Destination", fill = "Average Delay")
+    
+# Improved
+a <- flights %>%
+  filter(dep_delay > 0) %>% # negative delays are not delays so we filter
+  mutate(distcut = as.integer(cut(distance, seq(0, 5000, 1000)))) %>%
+  group_by(dest, month, distcut) %>%
+  summarize(ave_delay =  mean(dep_delay, na.rm = TRUE))
 
+for (i in 1:5) {
+  print(
+    ggplot(data = a[a$distcut == i,], aes(x = factor(month), y = dest, fill = ave_delay)) +
+      geom_tile() + 
+      facet_grid(~ distcut, scales = "free_y") +
+      labs(x = "Month", y = "Destination", fill = "Average Delay", title = paste("Distance ", (i-1)*1000, "-", i*1000, sep = ""))
+    )
+}
+```
 
+    Answer: as plotted in the first graph. It is hard to read because there are too many destinations and they are all smashed together. Therefore I used cut() function to group them by distances from NYC (0-1000 miles, 1000-2000 miles, etc.) and printed out seperate plots for each distance.
+
+## Number 3
+
+```{R}
+diamonds %>% 
+  count(color, cut) %>%  
+  ggplot(mapping = aes(x = cut, y = color)) +
+    geom_tile(mapping = aes(fill = n))
+```
 
 ## Q2 (optional)
 
