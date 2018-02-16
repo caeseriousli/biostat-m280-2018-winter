@@ -323,15 +323,62 @@ diamonds %>%
     geom_tile(mapping = aes(fill = n))
 ```
 
-## Q2 (optional)
+    Answer: as we can see there's no big difference. However it is prettier if we use aes(x = cut, y = color) since now the x-axis has few categories. Also cut has longer category names and they're easier to read on x-axis.
 
-Read [Chapter 23](http://r4ds.had.co.nz/model-basics.html) (Model Basics) and [Chapter 24](http://r4ds.had.co.nz/model-building.html) (Model Building) of _R for Data Science_ and do exercises 24.2.3 and 24.3.5.
+
+# Exercise 7.5.3.1
+## Number 1
+
+```{R}
+ggplot(data = diamonds, aes(x = price, color = cut_width(carat, 0.5))) +
+  geom_freqpoly(binwidth = 100)
+
+ggplot(data = diamonds, aes(x = price, color = cut_number(carat, 8))) +
+  geom_freqpoly(binwidth = 100)
+```
+
+    Answer: as the code shown above, both cut_width() and cut_number() subset a continuous variable into different interval groups. The only difference is that for cut_width() we only need to specify how big each interval shall be while for cut_number() we need to specify how many intervals we want. It really comes down to the structure of the data and our preference. If one needs to divide data into a specific number carat (or weight, or length, any continuous variable) groups then they should use cut_number(), and use cut_width() otherwise. Personally I would try using cut_number() first on a data that I'm not familiar with (especially when I don't know the range of the variable) in case it's cut into too many groups. 
+
+## Number 2
+
+```{R}
+ggplot(data = diamonds, aes(x = carat, color = cut_number(price, 10))) +
+  geom_freqpoly(binwidth = 0.1)
+
+ggplot(data = diamonds, aes(x = cut_number(price, 10), y = carat)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(x = "Price Intervals")
+
+ggplot(data = diamonds, aes(x = cut_number(price, 10), y = carat)) +
+  geom_violin() +
+  coord_flip() +
+  labs(x = "Price Intervals")
+```
+
+    Answer: I plotted a frequency polygon, a boxplot, and a violin, for a comprehensive view of their distributions.
+    
+## Number 3
+
+    Answer: from the plots above (especially the boxplot), we can tell that there might be a trend of higher-priced diamonds having greater carat values. However, we also see greater variations among higher-priced diamonds. We see more, and farther outliers in higher price diamonds as well. I would say it's as expected, since the higher the price, the more factors come in, such as its cut, clarity, and other properties, not just carat. You can have a big piece of (big carat) diamond, with low quality, compared to another with both good size and quality, and they will have a big difference in price.
+    
+## Number 4
+
+```{R}
+ggplot(data = diamonds, aes(x = carat, y = price)) +
+  geom_point() +
+  facet_wrap(~cut, scales = "free_y") 
+```
+
+    Answer: here I believe a scatter plot would most truthfully give an overview of the relationship between two continuous variables. Then in order to compare them on different cut levels, I used facet_wrap(), generating a scatter plot for each cut category.
+
+## Number 5
+
+    Answer: because in this case, we care about the relationship between the two variables. As we can see x and y are closely related. A binned plot (such as histogram) will not review the "relationship outliers", that is, values that aren't extreme for x or y alone but can be considered outliers when one looks at their relationship.
 
 ## Q3
 
 Redo HW1 Q2 using tidyverse.
 
-## Q4 (optional)
 
-Redo HW1 Q3 on Hoffman2, except now we want to submit each `runSum.R` job to a different node in the cluster.
 
