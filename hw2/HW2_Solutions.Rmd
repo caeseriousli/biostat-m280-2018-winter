@@ -380,5 +380,31 @@ ggplot(data = diamonds, aes(x = carat, y = price)) +
 
 Redo HW1 Q2 using tidyverse.
 
+## Number 1
 
+```{R}
+library(tidyverse)
+setwd("/home/m280-data/hw1")
+geno_bim <- read_delim("merge-geno.bim", col_names = FALSE, delim = "\t")
+geno_fam <- read_delim("merge-geno.fam", col_names = FALSE, delim = " ")
 
+geno_fam %>% 
+  filter(!is.na(geno_fam[, 2])) %>%
+  summarise(Number_of_Persons = n_distinct(geno_fam[, 2]))
+
+geno_bim %>%
+  filter(!is.na(geno_bim[, 2])) %>%
+  summarise(Number_of_SNPs = n_distinct(geno_bim[, 2]))
+```
+
+    Answer: the results are printed above
+    
+## Number 2
+
+```{R}
+geno_bim %>%
+  filter(!is.na(geno_bim[, 2]), !is.na(geno_bim[, 1])) %>%
+  count(geno_bim[, 1]) %>%
+  group_by(geno_bim[, 1]) %>%
+  mutate(Number_of_SNPs = n)
+```
