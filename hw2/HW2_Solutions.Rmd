@@ -403,8 +403,52 @@ geno_bim %>%
 
 ```{R}
 geno_bim %>%
-  filter(!is.na(geno_bim[, 2]), !is.na(geno_bim[, 1])) %>%
-  count(geno_bim[, 1]) %>%
-  group_by(geno_bim[, 1]) %>%
-  mutate(Number_of_SNPs = n)
+  filter(!is.na(X2), !is.na(X1)) %>%
+  group_by(X1) %>%
+  summarise(X2 = n_distinct(X2)) %>%
+  arrange(X1)
 ```
+
+    Answer: the results have been sorted and printed above. Note that "X1" is chromosome and "X2" is the number of SNP's
+
+## Number 3
+
+```{R}
+geno_bim %>%
+  filter(!is.na(X4), X4 >= 47892180, X4 <= 48130769) %>%
+  summarise(Number_of_MAP4 = n())
+```
+
+    Answer: number of unique MAP4 genes is listed above. I have also printed number of total MAP4 genes (including non-unique ones).
+## Number 4
+
+```{R}
+geno_bim %>%
+  filter(!is.na(X4), X4 >= 47892180, X4 <= 48130769) %>%
+  summarise(Number_of_MAP4_unique = n_distinct(X4))
+
+geno_bim %>%
+  filter(!is.na(X4), X4 >= 47892180, X4 <= 48130769) %>%
+  nrow()
+```
+
+    Answer: if we calculate unique SNP's the number is calculated. For total number it's printed above as well.
+    
+## Number 5
+
+```{R}
+header <- c("     2.40 = FILE FORMAT VERSION NUMBER.\n 8348674  = NUMBER OF SNPS LISTED HERE.")
+writeLines(header, "Mendel.bim")
+
+geno_bim %>%
+  select(X2, X1, X4) %>%
+  write.table(file = "Mendel.bim", sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE, append = TRUE)
+  
+
+geno_fam %>%
+  mutate(X2 = str_sub(X2, 5, 11), X3 = str_sub(X3, 5, 11), X4 = str_sub(X4, 5, 11), X5 = ifelse(X5 == 1, "M", "F"), X7 = "") %>%
+  select(X1, X2, X3, X4, X5, X7) %>%
+  write.table(file = "Mendel.fam", sep = ",", quote = FALSE, row.names = FALSE, col.names = FALSE)
+```
+
+    Answer: R code above has successfully written data in correct format to files "Mendel.bim" and "Mendel.fam" in the working directory.
