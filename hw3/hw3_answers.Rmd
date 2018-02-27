@@ -27,7 +27,8 @@ payroll <- payroll %>%
   mutate_at(funs(as.double(.)), .vars = vars(currencies)) %>%
   mutate_at(funs(as.character(.)), .vars = vars(4, 5, 25, 27))
 
-write_rds("payroll.rds", path = "/home/zexuan55/biostat-m280-2018-winter/hw3")
+setwd("/home/zexuan55/biostat-m280-2018-winter/hw3")
+write_rds(payroll, "payroll.rds")
 ```
 
     Answer: read in data set with dplyr as required. Data is already tiday. Converted currancy characters to doubles for shiny app computations.
