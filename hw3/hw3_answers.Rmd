@@ -21,11 +21,22 @@ library(tidyverse)
 setwd("/home/m280-data/la_payroll/")
 payroll <- read_delim("LA_City_Employee_Payroll.csv", col_names = TRUE, delim = ",")
 
-currencies <- c(8:14, 16:24, 30-33)
-payroll <- payroll %>% mutate_at(funs(str_sub(.,start = 2)), .vars = vars(currencies))
+currencies <- c(8:14, 16:24, 30:33)
+payroll <- payroll %>% 
+  mutate_at(funs(str_sub(.,start = 2)), .vars = vars(currencies)) %>% 
+  mutate_at(funs(as.double(.)), .vars = vars(currencies)) %>%
+  mutate_at(funs(as.character(.)), .vars = vars(4, 5, 25, 27))
+
+write_rds("payroll.rds", path = "/home/zexuan55/biostat-m280-2018-winter/hw3")
 ```
 
+    Answer: read in data set with dplyr as required. Data is already tiday. Converted currancy characters to doubles for shiny app computations.
+
 0. **Total payroll by LA City**. Visualize the total LA City payroll of each year, with breakdown into base pay, overtime pay, and other pay.
+
+```{R}
+
+```
 
 0. **Who earned most?** Visualize the payroll information (total payment with breakdown into base pay, overtime pay, and other pay, Department, Job Title) of the top $n$ highest paid LA City employees in a specific year. User specifies $n$ (default 10) and year (default 2017).
 
