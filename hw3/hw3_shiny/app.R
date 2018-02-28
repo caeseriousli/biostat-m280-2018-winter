@@ -12,15 +12,20 @@ if (!"DT" %in% rownames(installed.packages()))
   install.packages("DT", repos="http://cran.rstudio.com/")
 if (!"ggplot2" %in% rownames(installed.packages()))  
   install.packages("ggplot2", repos="http://cran.rstudio.com/")
+if (!"tidyverse" %in% rownames(installed.packages()))  
+  install.packages("tidyverse", repos="http://cran.rstudio.com/")
 
+library(tidyverse)
 library(shiny)
 library(DT)
 library(ggplot2)
-setwd("/home/zexuan55/biostat-m280-2018-winter/hw3")
-payroll <- read_rds("payroll.rds")
+
+# this is for deploying the app to shinyapps.io, if want to run locally please uncomment the next line
+# setwd("/home/zexuan55/biostat-m280-2018-winter/hw3/hw3_shiny")
+payroll <- read_rds("./data/payroll.rds")
 
 # Define UI for application that draws a histogram
-ui <- navbarPage("Select a Table",
+ui <- navbarPage("Select a Tab",
   tabPanel("Total Payroll",
     fluidRow(tableOutput("table0"))
   ),
