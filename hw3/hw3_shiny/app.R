@@ -10,9 +10,12 @@ if (!"shiny" %in% rownames(installed.packages()))
   install.packages("shiny", repos="http://cran.rstudio.com/")
 if (!"DT" %in% rownames(installed.packages()))  
   install.packages("DT", repos="http://cran.rstudio.com/")
+if (!"ggplot2" %in% rownames(installed.packages()))  
+  install.packages("ggplot2", repos="http://cran.rstudio.com/")
 
 library(shiny)
 library(DT)
+library(ggplot2)
 setwd("/home/zexuan55/biostat-m280-2018-winter/hw3")
 payroll <- read_rds("payroll.rds")
 
@@ -84,6 +87,22 @@ ui <- navbarPage("Select a Table",
     fluidRow(
       DT::dataTableOutput("table3")
     )
+  ),
+  
+  tabPanel("Total Payments Plot",
+    titlePanel("Top Paid Employees Boxplot by Years"),
+    sidebarLayout(
+      sidebarPanel(
+        sliderInput("n4", 
+                    "Top Number of Employees",
+                    min = 50,
+                    max = 850,
+                    value = 450)
+      ),
+      mainPanel(
+        plotOutput("pl")
+      )
+    )
   )
 )
 
@@ -116,14 +135,19 @@ server <- function(input, output) {
     DT::datatable({
       data <- payroll %>%
         select(3, 2, 16, 17, 22, 23) %>%
+        rename("tp" = "Total Payments",
+               "bp" = "Base Pay",
+               "op" = "Overtime Pay",
+               "otp" = "Other Pay & Adjustments") %>%
         filter(Year == as.integer(input$y2), !is.na("Total Payments")) %>%
         mutate(dp = .[[1]]) %>%
         group_by(dp) %>%
-        summarise("Department Mean Total Pay" = mean(.[[3]], na.rm = TRUE),
-                  "Department Mean Base Pay" = mean(.[[4]], na.rm = TRUE),
-                  "Department Mean Overtime Pay" = mean(.[[5]], na.rm = TRUE),
-                  "Department Mean Other Pay" = mean(.[[6]]), na.rm = TRUE) %>%
-        arrange(desc("Department Mean Pay")) %>%
+        summarise("Department Mean Total Pay" = mean(tp, na.rm = TRUE),
+                  "Department Mean Base Pay" = mean(bp, na.rm = TRUE),
+                  "Department Mean Overtime Pay" = mean(op, na.rm = TRUE),
+                  "Department Mean Other Pay" = mean(otp, na.rm = TRUE)) %>%
+        arrange(desc(dp)) %>%
+        rename("Department Title" = dp) %>%
         head(input$n2)
       data
     }, options = list(pageLength = 20))
@@ -133,20 +157,38 @@ server <- function(input, output) {
     DT::datatable({
       data <- payroll %>%
         select(3, 2, 16, 17, 22, 23) %>%
+        rename("tp" = "Total Payments",
+               "bp" = "Base Pay",
+               "op" = "Overtime Pay",
+               "otp" = "Other Pay & Adjustments") %>%
         filter(Year == as.integer(input$y3), !is.na("Total Payments")) %>%
         mutate(dp = .[[1]]) %>%
         group_by(dp) %>%
-        summarise("Department Total Pay" = sum(.[[3]], na.rm = TRUE),
-                  "Department Total Base Pay" = sum(.[[4]], na.rm = TRUE),
-                  "Department Total Overtime Pay" = sum(.[[5]], na.rm = TRUE),
-                  "Department Total Other Pay" = sum(.[[6]]), na.rm = TRUE) %>%
-        arrange(desc("Department Total Pay")) %>%
+        summarise("Department Total Pay" = sum(tp, na.rm = TRUE),
+                  "Department Total Base Pay" = sum(bp, na.rm = TRUE),
+                  "Department Total Overtime Pay" = sum(op, na.rm = TRUE),
+                  "Department Total Other Pay" = sum(otp, na.rm = TRUE)) %>%
+        arrange(desc(dp)) %>%
+        rename("Department Title" = dp) %>%
         head(input$n3)
       data
     }, options = list(pageLength = 20))
   )
   
-  
+  output$pl <- renderPlot({
+    data <- payroll %>%
+      select(2, 16) %>%
+      rename("tp" = "Total Payments") %>%
+      arrange(desc(tp)) %>%
+      head(input$n4) %>%
+      mutate(tp1 = tp / 1000) %>%
+      arrange(Year)
+    
+    p <- ggplot(data, aes(x = as.factor(Year), y = tp1)) +
+           geom_boxplot() +
+           labs(x = "Year", y = "Total Payments (in thousand dollars)")
+    print(p)
+  })
 }
 
 # Run the application 
