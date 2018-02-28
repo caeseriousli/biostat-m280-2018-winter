@@ -27,7 +27,7 @@ payroll <- payroll %>%
   mutate_at(funs(as.double(.)), .vars = vars(currencies)) %>%
   mutate_at(funs(as.character(.)), .vars = vars(4, 5, 25, 27))
 
-setwd("/home/zexuan55/biostat-m280-2018-winter/hw3")
+setwd("/home/zexuan55/biostat-m280-2018-winter/hw3/hw3_shiny/data")
 write_rds(payroll, "payroll.rds")
 ```
 
@@ -63,6 +63,33 @@ write_rds(payroll, "payroll.rds")
 The SQLite database `/home/m280-data/la_parking/LA_Parking_Citations.sqlite` on teaching server contains information about parking tickets in LA City. It was downloaded from [LA Open Data Portal](https://data.lacity.org/A-Well-Run-City/Parking-Citations/wjz9-h9np). Connect to the database and answer following questions using plots and summary statistics. In this exercise, you are **not** allowed to load whole data into memory. Use the _transform in database, plot in R_ strategy.
 
 1. How many tickets are in this data set? Which time period do these tickets span? Which years have most data?
+
+```{R}
+if (!"DBI" %in% rownames(installed.packages()))  
+      install.packages("DBI", repos="http://cran.rstudio.com/")
+if (!"RSQLite" %in% rownames(installed.packages()))  
+      install.packages("RSQLite", repos="http://cran.rstudio.com/")
+if (!"lubridate" %in% rownames(installed.packages()))  
+      install.packages("lubridate", repos="http://cran.rstudio.com/")
+
+library("DBI")
+library("RSQLite")
+library("lubridate")
+db <- dbConnect(RSQLite::SQLite(), 
+                dbname = 
+                "/home/m280-data/la_parking/LA_Parking_Citations_Extra.sqlite")
+dbListTables(db)
+tix <- dplyr::tbl(db, "Latix")
+tatal <- tix %>% tally() %>% collect()
+
+span <- tix %>%
+          summary(maxd = max(Issue_Day, na.rm = T), 
+                  min = min(itime, na.rm = T)) %>%
+          collect()
+
+
+
+```
 
 0. When (which hour, weekday, month day, and month) are you most likely to get a ticket and when are you least likely to get a ticket?
 
