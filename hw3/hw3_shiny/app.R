@@ -12,62 +12,59 @@ setwd("/home/zexuan55/biostat-m280-2018-winter/hw3")
 payroll <- read_rds("payroll.rds")
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+ui <- navbarPage("Result Categories",
    
-   # Application title
-   titlePanel("LA City Employee Payroll"),
-   
-   fluidRow(
-     column(4,
-       selectInput("y1", 
-                   "Year: Most-earning Employee", 
-                   sort(unique(payroll[[2]]), decreasing = FALSE)),
-       sliderInput("n1",
-                   "Top Number of Employees",
-                   min = 1,
-                   max = 100,
-                   value = 10)
-     ),
-     
-     column(4,
-       selectInput("y2", 
-                   "Year: Most-earning Departments", 
-                   sort(unique(payroll[[2]]), decreasing = FALSE)),
-       sliderInput("n2",
-                   "Top Number of Employees",
-                   min = 1,
-                   max = 88,
-                   value = 5)
-     ),
-     column(4,
-       selectInput("y3", 
-                   "Year: Most-costing Departments", 
-                   sort(unique(payroll[[2]]), decreasing = FALSE)),
-       sliderInput("n3",
-                   "Top Number of Employees",
-                   min = 1,
-                   max = 88,
-                   value = 5)       
-     )
-   ),
-   
-   # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-     
-     sidebarPanel(
+  tabPanel("Most-earning Employee",
+    fluidRow(
+      column(4,
+        selectInput("y1", 
+                    "Year: Most-earning Employee", 
+                    sort(unique(payroll[[2]]), decreasing = FALSE))
          
-        sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
       ),
-      
-      # Show a plot of the generated distribution
-      mainPanel(
-         plotOutput("distPlot")
+      column(
+        sliderInput("n1",
+                    "Top Number of Employees",
+                    min = 1,
+                    max = 100,
+                    value = 10)
       )
-   )
+    )
+  ),
+  
+  tabPanel("Most-earning Department",
+    fluidRow(
+      column(4,
+        selectInput("y2", 
+                    "Year: Most-earning Departments", 
+                    sort(unique(payroll[[2]]), decreasing = FALSE))
+      ),
+      column(
+        sliderInput("n2",
+                    "Top Number of Employees",
+                    min = 1,
+                    max = 88,
+                    value = 5)
+      )
+    )
+  ),
+  
+  tabPanel("Most-costing Department",
+    fluidRow(
+      column(4,
+        selectInput("y3", 
+                    "Year: Most-costing Departments", 
+                    sort(unique(payroll[[2]]), decreasing = FALSE))
+      ),
+      column(4,
+             sliderInput("n3",
+                         "Top Number of Employees",
+                         min = 1,
+                         max = 88,
+                         value = 5) 
+      )
+    )
+  )
 )
 
 # Define server logic required to draw a histogram
