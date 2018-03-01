@@ -100,10 +100,10 @@ yr <- tix %>%
   head(1) %>%
   collect()
 
-cat("Number of observations: ", as.double(total), "\n")
-cat("Range: \nEarliest ", as.character(as.POSIXct(span$min, origin="1970-01-01")), "\n")
-cat("Latest ", as.character(as.POSIXct(span$max, origin="1970-01-01")), "\n")
-cat("Year that has the most data and count: ", as.double(yr), "\n")
+cat("Number of observations: ", as.double(total), "\n",
+    "Range: \nEarliest ", as.character(as.POSIXct(span$min, origin="1970-01-01")), "\n",
+    "Latest ", as.character(as.POSIXct(span$max, origin="1970-01-01")), "\n",
+    "Year that has the most data and count: ", as.double(yr), "\n", sep = "")
 
 ```
 
@@ -148,29 +148,93 @@ ym <- tix2 %>%
   filter(!is.na(Issue_Month)) %>%
   collect()
 
-cat("Most likely: \n")
-cat("Hour of the day: ", as.character(hr[1, 1]), "\n")
-cat("Week day: ", as.character(wd[1, 1]), "\n")
-cat("Day of the month: ", as.character(md[1, 1]), "\n")
-cat("Month of the year: ", as.character(ym[1, 1]), "\n")
-cat("\nLeast likely: \n")
-cat("Hour of the day: ", as.character(hr[nrow(hr), 1]), "\n")
-cat("Week day: ", as.character(wd[nrow(wd), 1]), "\n")
-cat("Day of the month: ", as.character(md[nrow(md), 1]), "\n")
-cat("Month of the year: ", as.character(ym[nrow(ym), 1]), "\n")
+cat("Most likely: \n",
+    "Hour of the day: ", as.character(hr[1, 1]), "\n",
+    "Week day: ", as.character(wd[1, 1]), "\n",
+    "Day of the month: ", as.character(md[1, 1]), "\n",
+    "Month of the year: ", as.character(ym[1, 1]), "\n",
+    "\nLeast likely: \n",
+    "Hour of the day: ", as.character(hr[nrow(hr), 1]), "\n",
+    "Week day: ", as.character(wd[nrow(wd), 1]), "\n",
+    "Day of the month: ", as.character(md[nrow(md), 1]), "\n",
+    "Month of the year: ", as.character(ym[nrow(ym), 1]), "\n", sep = "")
 ```
 
     Answer: all results are printed above. Note that for most/least likely month of the year, if we included all of the data, monthly frequencies of all observations would be weighted more towards Oct-Dec, since the data started in Oct 2010 and ended in Dec 2017 and therefore we have an extra "piece of a year" that has only Oct-Dec. Therefore I decided to filter out the data from Oct-Dec in 2010, therefore obtaining evenly weighted frequencies.
 
 0. Which car makes received most citations?
 
+```{R}
+makes <- tix2 %>%
+  group_by(Make) %>%
+  summarize("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Make)) %>%
+  head(1) %>%
+  collect()
 
+cat("Car make that received most citations: ", as.character(makes[1,1]), "\n", sep = "")
+```
+
+    Answer: the car make that received most of the citations is printed above (Toyota).
 
 0. How many different colors of cars were ticketed? Which color attracted most tickets?
 
+```{R}
+cl <- tix2 %>%
+  group_by(Color) %>%
+  summarise("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Color)) %>%
+  collect()
+
+cat("Number of different colors of cars: ", as.character(nrow(cl)), "\n",
+    "Color that attracted most tickets: ", as.character(cl[1, 1]), "\n", sep = "")
+```
+
+    Answer: as printed above. There are 65 different car colors that were ticketed, among with Black cars received most of the tickets.
+
 0. What are the most common ticket types?
+
+```{R}
+tt <- tix2 %>%
+  group_by(Violation_Description) %>%
+  summarise("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Violation_Description)) %>%
+  collect()
+
+cat("Most common ticket type: ", as.character(tt[1, 1]), "\n", sep = "")
+```
 
 0. How much money was collected on parking tickets in 2015 and 2016?
 
+```{R}
+money <- tix2 %>%
+  filter(Issue_Year == 2015 | Issue_Year == 2016) %>%
+  summarise(tot = sum(Fine_amount, na.rm = T)) %>%
+  collect()
+
+cat("Total fine collected in 2015 and 2016 ", as.character(money$tot), "\n", sep = "")
+```
+
+    Answer: as printed above the total money collected in those two years is $274242930.
+
 0. Visualize any other information you are interested in.
 
+```{R}
+if (!"ggplot2" %in% rownames(installed.packages()))  
+  install.packages("ggplot2", repos="http://cran.rstudio.com/")
+library(ggplot2)
+
+ym <- as.data.frame(ym)
+ym$count = ym$count / 7
+ggplot(ym, aes(x = as.factor(ym$Issue_Month), y = ym$count)) +
+  geom_col() +
+  labs(title = "Average Monthly Number of Citations",
+       subtitle = "Starting from 2010-12-29",
+       x = "Month",
+       y = "Average Number of Citations")
+```
+
+    Answer: we're plotting Average Monthly Number of Citations. Note that for average monthly citations I divided total frequencies by 7 because each month of the year occurred 7 times from 2010 to 2017. 
