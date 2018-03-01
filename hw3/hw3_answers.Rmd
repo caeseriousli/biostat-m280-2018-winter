@@ -80,7 +80,7 @@ db <- dbConnect(RSQLite::SQLite(),
                 "/home/m280-data/la_parking/LA_Parking_Citations.sqlite")
 dbListTables(db)
 tix <- dplyr::tbl(db, "Latix")
-tatal <- tix %>% tally() %>% collect()
+total <- tix %>% tally() %>% collect()
 
 
 
@@ -90,14 +90,81 @@ span <- tix %>%
             max = max(Issue_DateTime, na.rm = T)) %>%
   collect()
 
+yr <- tix %>%
+  mutate(Issue_DateTime = 
+         datetime(Issue_DateTime, 'unixepoch', 'localtime')) %>%
+  mutate(year = strftime('%Y', Issue_DateTime)) %>%
+  group_by(year) %>%
+  summarize("count" = n()) %>%
+  arrange(desc(count)) %>%
+  head(1) %>%
+  collect()
+
+cat("Number of observations: ", as.double(total), "\n")
 cat("Range: \nEarliest ", as.character(as.POSIXct(span$min, origin="1970-01-01")), "\n")
 cat("Latest ", as.character(as.POSIXct(span$max, origin="1970-01-01")), "\n")
+cat("Year that has the most data and count: ", as.double(yr), "\n")
 
 ```
 
+    Answer: all results are printed above, by code above. Note that all queries ignored missing values.
+
 0. When (which hour, weekday, month day, and month) are you most likely to get a ticket and when are you least likely to get a ticket?
 
+```{R}
+db2 <- dbConnect(RSQLite::SQLite(), 
+                dbname = 
+                "/home/m280-data/la_parking/LA_Parking_Citations_Extra.sqlite")
+tix2 <- dplyr::tbl(db2, "Latix")
+
+
+hr <- tix2 %>%
+  group_by(Issue_Hour) %>%
+  summarize("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Issue_Hour)) %>%
+  collect()
+
+wd <- tix2 %>%
+  group_by(Issue_Wday) %>%
+  summarize("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Issue_Wday)) %>%
+  collect()
+
+md <- tix2 %>%
+  group_by(Issue_Day) %>%
+  summarize("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Issue_Day)) %>%
+  collect()
+
+# filtered out the oldest data in 2010 in order to keep the analysis accurate
+ym <- tix2 %>%
+  filter(!(Issue_Year == 2010 & Issue_Month <= 12 & Issue_Day <= 29)) %>%
+  group_by(Issue_Month) %>%
+  summarize("count" = n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(Issue_Month)) %>%
+  collect()
+
+cat("Most likely: \n")
+cat("Hour of the day: ", as.character(hr[1, 1]), "\n")
+cat("Week day: ", as.character(wd[1, 1]), "\n")
+cat("Day of the month: ", as.character(md[1, 1]), "\n")
+cat("Month of the year: ", as.character(ym[1, 1]), "\n")
+cat("\nLeast likely: \n")
+cat("Hour of the day: ", as.character(hr[nrow(hr), 1]), "\n")
+cat("Week day: ", as.character(wd[nrow(wd), 1]), "\n")
+cat("Day of the month: ", as.character(md[nrow(md), 1]), "\n")
+cat("Month of the year: ", as.character(ym[nrow(ym), 1]), "\n")
+```
+
+    Answer: all results are printed above. Note that for most/least likely month of the year, if we included all of the data, monthly frequencies of all observations would be weighted more towards Oct-Dec, since the data started in Oct 2010 and ended in Dec 2017 and therefore we have an extra "piece of a year" that has only Oct-Dec. Therefore I decided to filter out the data from Oct-Dec in 2010, therefore obtaining evenly weighted frequencies.
+
 0. Which car makes received most citations?
+
+
 
 0. How many different colors of cars were ticketed? Which color attracted most tickets?
 
