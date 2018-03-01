@@ -69,25 +69,29 @@ if (!"DBI" %in% rownames(installed.packages()))
       install.packages("DBI", repos="http://cran.rstudio.com/")
 if (!"RSQLite" %in% rownames(installed.packages()))  
       install.packages("RSQLite", repos="http://cran.rstudio.com/")
-if (!"lubridate" %in% rownames(installed.packages()))  
-      install.packages("lubridate", repos="http://cran.rstudio.com/")
+#if (!"lubridate" %in% rownames(installed.packages()))  
+     # install.packages("lubridate", repos="http://cran.rstudio.com/")
 
 library("DBI")
 library("RSQLite")
-library("lubridate")
+#library("lubridate")
 db <- dbConnect(RSQLite::SQLite(), 
                 dbname = 
-                "/home/m280-data/la_parking/LA_Parking_Citations_Extra.sqlite")
+                "/home/m280-data/la_parking/LA_Parking_Citations.sqlite")
 dbListTables(db)
 tix <- dplyr::tbl(db, "Latix")
 tatal <- tix %>% tally() %>% collect()
 
+
+
 span <- tix %>%
-          summary(maxd = max(Issue_Day, na.rm = T), 
-                  min = min(itime, na.rm = T)) %>%
-          collect()
+  select(Issue_DateTime) %>%
+  summarise(min = min(Issue_DateTime, na.rm = T), 
+            max = max(Issue_DateTime, na.rm = T)) %>%
+  collect()
 
-
+cat("Range: \nEarliest ", as.character(as.POSIXct(span$min, origin="1970-01-01")), "\n")
+cat("Latest ", as.character(as.POSIXct(span$max, origin="1970-01-01")), "\n")
 
 ```
 
