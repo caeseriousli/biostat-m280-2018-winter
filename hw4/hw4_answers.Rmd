@@ -101,14 +101,19 @@ route_result <- route_result %>%
   mutate(lat = as.double(lat), lon = as.double(lon), 
          lat_a = as.double(lat_a), 
          lon_a = as.double(lon_a), 
-         counts = as.double(count/70000))
+         counts = as.double(count/160000))
 
 ggplot() +  
   geom_polygon(data = usa, aes(x = long, y = lat, group = group), 
        fill = "blue", color = "violet") +
   coord_fixed(1.3) +
-  geom_segment(aes(x = lon_a, y = lat_a, xend = lon, yend = lat, colour = a, size = counts), data = route_result) +
-  scale_size_continuous(range = c(min(route_result$counts), max(route_result$counts)), trans = "sqrt") +
+  geom_segment(aes(x = lon_a, y = lat_a, 
+                   xend = lon, yend = lat, 
+                   colour = a, size = counts), 
+               data = route_result) +
+  scale_size_continuous(range = c(min(route_result$counts), 
+                                  max(route_result$counts)), 
+                        trans = "sqrt") +
   geom_point(data = route_result, 
              aes(x = lon, y = lat), size = 1, color = "red") +
   geom_point(data = route_result, 
@@ -122,20 +127,55 @@ ggplot() +
   theme(legend.position="none")
 ```
 
-0. LAX:
+    Answer: I pasted origin and dest in alphabetical order so I can count both ways for the same route (for example, LAX-JFK will become JFK-LAX and therefore grouped under same category). This way I accurrately counted routes.In addition I gave them different colours just for aesthetics and easiness of distinguishing overlapping thick line segments from each other.
+
+3. LAX:
   
     <p align="center">
     ![](./lax-by-day-98-08.png)
     </p>
 
     (a). Reproduce above plot. Visualize and explain some prominent features you observe. For example, what happened at points 1-5?
+    
+```{R}
+lax_traffic <- flights %>%
+  filter(origin == "LAX" | dest == "LAX", 
+         !is.na(year), !is.na(month), !is.na(dayofmonth), 
+         year >= 1998 && year <= 2009) %>%
+  mutate(year = as.character(year), 
+         month = as.character(month),
+         dayofmonth = as.character(dayofmonth)) %>%
+  mutate(stime = paste0(year, "/", month, "/", dayofmonth)) %>%
+  group_by(stime) %>%
+  summarise(counts = n()) %>%
+  collect()
+
+lax_traffic <- lax_traffic %>%
+  mutate(stime = as.Date(stime))
+
+ggplot(data = lax_traffic,
+       mapping = aes(x = stime, y = counts)) +
+  geom_line() +
+  scale_x_date(labels = function(x) format(x, "%Y")) +
+  coord_fixed(0.8)
+```
+
+    Answer: plotted as required above. I first pasted year, month, and dayofmonth variables into one string variable. Then grouped and collected the result. Then I converted the string variable to a date variable, feeded to ggplot2.
 
     (b). Visualize and explain seasonal effects.
   
     (c). Visualize and explain weekly effects.
   
     (d). Map top 10 destinations from LAX. Size of dots should reflect the number of flights from LAX to that destination.
-    
+
+```{R}
+  mutate(a = ifelse(origin == "LAX", origin, dest), 
+         b = ifelse(origin == "LAX", dest, origin),
+         year = as.character(year), 
+         month = as.character(month),
+         dayofmonth = as.character(dayofmonth)) %>%
+```
+   
 0. Build a predictive model for the arrival delay (`arrdelay`) of flights flying from LAX. Use the same filtering criteria as in the [lecture notes](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/12-sparklyr/sparklyr-flights.html) to construct training and validation sets. You are allowed to use a maximum of 5 predictors. The prediction performance of your model on the validation data set will be an important factor for grading this question.
     
 0. Visualize and explain any other information you want to explore.
