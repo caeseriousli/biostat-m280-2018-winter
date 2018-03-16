@@ -159,7 +159,7 @@ ggplot(data = lax_traffic,
   geom_line() +
   scale_x_date(labels = function(x) format(x, "%Y")) +
   coord_fixed(0.8) +
-  labs(x = "date", y = "n")
+  labs(x = "date", y = "n", title = "LA air traffic")
 ```
 
     Answer: plotted as required above. I first pasted year, month, and dayofmonth variables into one string variable. Then grouped and collected the result. Then I converted the string variable to a date variable, feeded to ggplot2. Prominent features: we immediately notice a big drop from late 2001 to end of 2002, at label Number 1. It could be because of the effects of 9/11. Many people cancelled their flights and chose not to travel on airplanes during that time. At label Number 2, there is another unusual dip. It could be because of the presidential election, when President Bush was re-elected and in the same month U.S. troops stormed an Iraqi stronghold. There is another dip at label Number 3, which could be due to the massacre of nomad Muslims in Nigeria. At label Number 3, there was a tornado outbreak in the beginning of February. Lastly, at label Number 5, there is a boom of air traffic from the beginning of 2001. It could be the result of many things, such as airlines' new strategy to lower the prices and attract more customers. Also American Airline acquired TWA in the beginning of 2001.
@@ -261,21 +261,36 @@ ggplot() +
 4. Build a predictive model for the arrival delay (`arrdelay`) of flights flying from LAX. Use the same filtering criteria as in the [lecture notes](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/12-sparklyr/sparklyr-flights.html) to construct training and validation sets. You are allowed to use a maximum of 5 predictors. The prediction performance of your model on the validation data set will be an important factor for grading this question.
 
 ```{R}
-flights %>% 
-  na.omit() %>%
-  select_if(is.numeric) %>%
-  do(data.frame(Cor=t(cor(.[,1:3], .[,1]))))
-fit <- flights %>% 
+model_partition <- flights %>% 
+  sdf_partition(train = 0.8, valid = 0.2, seed = 5555)
+
+ml1 <- model_partition$train %>%
   filter(!is.na(arrdelay), !is.na(depdelay),
          !is.na(crsdeptime), !is.na(actualelapsedtime),
          !is.na(crselapsedtime), !is.na(arrtime)) %>%
-  ml_linear_regression(response = "arrdelay", 
-                       features = c("depdelay", 
-                                    "crsdeptime", 
-                                    "actualelapsedtime", 
-                                    "crselapsedtime",
-                                    "arrtime")) %>%
-  collect()
+  ml_linear_regression(arrdelay ~ depdelay + 
+                       actualelapsedtime + uniquecarrier + 
+                       crselapsedtime + arrtime) 
+
+model_deciles <- lapply(model_partition, function(x) {
+  sdf_predict(ml1, x) %>%
+    mutate(decile = ntile(desc(prediction), 10)) %>%
+    group_by(decile) %>%
+    summarize(arrdelay = mean(arrdelay)) %>%
+    select(decile, arrdelay) %>%
+    collect()
+  })
+
+deciles <- rbind(
+  data.frame(data = 'train', model_deciles$train),
+  data.frame(data = 'valid', model_deciles$valid),
+  make.row.names = FALSE
+)
+
+deciles %>%
+  ggplot(aes(factor(decile), gain, fill = data)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  labs(title = 'Average gain by predicted decile', x = 'Decile', y = 'Minutes')
 ```
     
 5. Visualize and explain any other information you want to explore.
@@ -304,4 +319,4 @@ ggplot(data = traffic,
   labs(x = "date", y = "n")
 ```
 
-    Answer: I chose to visualize all flight traffic originated from JFK. We already plotted LAX traffic, but I want to see if JFK's traffic distribution is comparable to that of LAX. Furthermore, I'd like to see if the peaks and the "dips" are consistent of the plot we generated earlier, in order to verify universality of my earlier hypotheses.
+    Answer: I chose to visualize all flight traffic originated from JFK. We already plotted LAX traffic, but I want to see if JFK's traffic distribution is comparable to that of LAX. Furthermore, I'd like to see if the peaks and the "dips" are consistent of the plot we generated earlier, in order to verify universality of my earlier hypotheses. Observe that JFK has much less variation, and surprisingly less flights too! It has the similar trend as LAX's at especially label Number 1 and 5, implying that those two events had nation-wide impact.
