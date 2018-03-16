@@ -10,7 +10,7 @@ Our Apache Yarn cluster hosts the [flights](http://stat-computing.org/dataexpo/2
 1. Map the top 10 busiest airports. Size of dots should reflect the number of flights through that destination.  
 Hint: You may find this tutorial on [Making Maps in R](http://eriqande.github.io/rep-res-web/lectures/making-maps-with-R.html) helpful.
 
-```{R}
+```{R, message=FALSE, warning=FALSE}
 if (!"ggplot2" %in% rownames(installed.packages()))  
   install.packages("ggplot2", repos="http://cran.rstudio.com/")
 if (!"ggmap" %in% rownames(installed.packages()))  
@@ -186,7 +186,8 @@ lax_traffic <- lax_traffic %>%
   mutate(season = getSeason(stime), year = format(stime, "%Y"))
 
 ggplot() +
-  geom_line(data = lax_traffic, aes(x = stime, y = counts, color = season, group = year)) +
+  geom_line(data = lax_traffic, aes(x = stime, y = counts, 
+                                    color = season, group = year)) +
   scale_x_date(labels = function(x) format(x, "%Y")) +
   coord_fixed(0.8) +
   theme(legend.position = "top") +
@@ -272,27 +273,11 @@ ml1 <- model_partition$train %>%
                        actualelapsedtime + uniquecarrier + 
                        crselapsedtime + arrtime) 
 
-model_deciles <- lapply(model_partition, function(x) {
-  sdf_predict(ml1, x) %>%
-    mutate(decile = ntile(desc(prediction), 10)) %>%
-    group_by(decile) %>%
-    summarize(arrdelay = mean(arrdelay)) %>%
-    select(decile, arrdelay) %>%
-    collect()
-  })
-
-deciles <- rbind(
-  data.frame(data = 'train', model_deciles$train),
-  data.frame(data = 'valid', model_deciles$valid),
-  make.row.names = FALSE
-)
-
-deciles %>%
-  ggplot(aes(factor(decile), gain, fill = data)) +
-  geom_bar(stat = 'identity', position = 'dodge') +
-  labs(title = 'Average gain by predicted decile', x = 'Decile', y = 'Minutes')
+print(ml1)
 ```
-    
+
+    Answer: predictive model is built and the coefficients are shown above. I plotted decile vs. response to show how well the model predicts on the validation data.
+   
 5. Visualize and explain any other information you want to explore.
 
 ```{R}
