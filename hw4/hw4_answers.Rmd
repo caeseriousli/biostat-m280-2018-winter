@@ -261,9 +261,47 @@ ggplot() +
 4. Build a predictive model for the arrival delay (`arrdelay`) of flights flying from LAX. Use the same filtering criteria as in the [lecture notes](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/12-sparklyr/sparklyr-flights.html) to construct training and validation sets. You are allowed to use a maximum of 5 predictors. The prediction performance of your model on the validation data set will be an important factor for grading this question.
 
 ```{R}
-flights %>% summarize_each(funs(corr(., y)), starts_with("x"))
+flights %>% 
+  na.omit() %>%
+  select_if(is.numeric) %>%
+  do(data.frame(Cor=t(cor(.[,1:3], .[,1]))))
+fit <- flights %>% 
+  filter(!is.na(arrdelay), !is.na(depdelay),
+         !is.na(crsdeptime), !is.na(actualelapsedtime),
+         !is.na(crselapsedtime), !is.na(arrtime)) %>%
+  ml_linear_regression(response = "arrdelay", 
+                       features = c("depdelay", 
+                                    "crsdeptime", 
+                                    "actualelapsedtime", 
+                                    "crselapsedtime",
+                                    "arrtime")) %>%
+  collect()
 ```
     
 5. Visualize and explain any other information you want to explore.
-  
 
+```{R}
+traffic <- flights %>%
+  filter(origin == "JFK" | dest == "JFK", 
+         !is.na(year), !is.na(month), !is.na(dayofmonth), 
+         year >= 1998 && year <= 2009) %>%
+  mutate(year = as.character(year), 
+         month = as.character(month),
+         dayofmonth = as.character(dayofmonth)) %>%
+  mutate(stime = paste0(year, "/", month, "/", dayofmonth)) %>%
+  group_by(stime) %>%
+  summarise(counts = n()) %>%
+  collect()
+
+traffic <- traffic %>%
+  mutate(stime = as.Date(stime))
+
+ggplot(data = traffic,
+       mapping = aes(x = stime, y = counts)) +
+  geom_line() +
+  scale_x_date(labels = function(x) format(x, "%Y")) +
+  coord_fixed(0.8) +
+  labs(x = "date", y = "n")
+```
+
+    Answer: I chose to visualize all flight traffic originated from JFK. We already plotted LAX traffic, but I want to see if JFK's traffic distribution is comparable to that of LAX. Furthermore, I'd like to see if the peaks and the "dips" are consistent of the plot we generated earlier, in order to verify universality of my earlier hypotheses.
