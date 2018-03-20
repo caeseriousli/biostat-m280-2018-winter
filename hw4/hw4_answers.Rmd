@@ -1,0 +1,303 @@
+---
+title: "Homework 4"
+author: "Caesar (Zexuan) Li"
+date: "3/8/2018"
+output: html_document
+---
+
+Our Apache Yarn cluster hosts the [flights](http://stat-computing.org/dataexpo/2009/the-data.html) data representing 123 million flights over 22 years. Read the [lecture notes](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/12-sparklyr/sparklyr-flights.html) on how to access the Yarn cluster. Connect to the database using `sparklyr` and answer following questions. You can base your answers on a specific year or the whole data set.
+
+1. Map the top 10 busiest airports. Size of dots should reflect the number of flights through that destination.  
+Hint: You may find this tutorial on [Making Maps in R](http://eriqande.github.io/rep-res-web/lectures/making-maps-with-R.html) helpful.
+
+    ```{R, message=FALSE, warning=FALSE}
+    if (!"ggplot2" %in% rownames(installed.packages()))  
+      install.packages("ggplot2", repos="http://cran.rstudio.com/")
+    if (!"ggmap" %in% rownames(installed.packages()))  
+      install.packages("ggmap", repos="http://cran.rstudio.com/")
+    if (!"maps" %in% rownames(installed.packages()))  
+      install.packages("maps", repos="http://cran.rstudio.com/")
+    if (!"mapdata" %in% rownames(installed.packages()))  
+      install.packages("mapdata", repos="http://cran.rstudio.com/")
+    if (!"sparklyr" %in% rownames(installed.packages()))  
+      install.packages("sparklyr", repos="http://cran.rstudio.com/")
+    if (!"tidyverse" %in% rownames(installed.packages()))  
+      install.packages("tidyverse", repos="http://cran.rstudio.com/")
+    
+    
+    
+    library(sparklyr)
+    library(dplyr)
+    
+    Sys.setenv(SPARK_HOME="/usr/lib/spark")
+    config <- spark_config()
+    sc <- spark_connect(master = "yarn-client", config = config)
+    flights <- tbl(sc, 'flights')
+    airports <- tbl(sc, 'airports')
+    
+    top_airports <- flights %>% 
+      filter(cancelled == 0) %>%
+      group_by(origin) %>%
+      summarise('count' = n()) %>%
+      arrange(desc(count)) %>%
+      head(10) %>%
+      inner_join(airports, by = c("origin" = "faa")) %>%
+      select(origin, lat, lon, count) %>%
+      collect()
+    
+    library(ggplot2)
+    library(ggmap)
+    library(maps)
+    library(mapdata)
+    
+    top_airports <- top_airports %>% 
+      mutate(lat = as.double(lat), lon = as.double(lon))
+    usa <- map_data("usa")
+    
+    ggplot() +  
+      geom_polygon(data = usa, aes(x = long, y = lat, group = group), 
+           fill = "blue", color = "violet") +
+      coord_fixed(1.3) +
+      geom_point(data = top_airports, 
+                 aes(x = lon, y = lat, size = count / 1500000), 
+                 color = "red") +
+      geom_text(data = top_airports, 
+                aes(x = lon, y = lat, label = origin), 
+                hjust= -0.2, vjust= -1.1, size = 2) +
+      theme(legend.position="none")
+    ```
+
+    Answer: plot generated as required.
+
+2. Map the top 10 busiest direct routes. Size of lines should reflect the number of flights through that route.
+
+    ```{R}
+    # this part I pasted the destination and origin together in alphabetical order
+    # so that b -> a becomes a -> b so we can count both ways
+    top_routes <- flights %>%
+      mutate(routes = ifelse(origin < dest, 
+                             paste0(origin, ",", dest ), 
+                             paste0(dest, ",", origin))) %>%
+      group_by(routes) %>%
+      summarise('count' = n()) %>%
+      arrange(desc(count)) %>%
+      head(10) %>%
+      collect()
+    
+    library(tidyr)
+    top_routes2 <- top_routes %>%
+      separate(routes, into = c("a", "b")) 
+    detach(package:tidyr)
+    
+    # this part I joined the tables twice for the coodinates for both airports
+    route_result <- airports %>%
+      right_join(top_routes2, by = c("faa" = "a"), copy = TRUE) %>%
+      select(faa, b, lat, lon, count) %>%
+      rename(a = faa, lat_a = lat, lon_a = lon) %>%
+      left_join(airports, by = c("b" = "faa")) %>%
+      select(a, b, lat_a, lon_a, lat, lon, count) %>%
+      collect()
+    
+    route_result <- route_result %>% 
+      mutate(lat = as.double(lat), lon = as.double(lon), 
+             lat_a = as.double(lat_a), 
+             lon_a = as.double(lon_a), 
+             counts = as.double(count / 160000))
+    
+    ggplot() +  
+      geom_polygon(data = usa, aes(x = long, y = lat, group = group), 
+           fill = "blue", color = "violet") +
+      coord_fixed(1.3) +
+      geom_segment(aes(x = lon_a, y = lat_a, 
+                       xend = lon, yend = lat, 
+                       colour = a, size = counts), 
+                   data = route_result) +
+      scale_size_continuous(range = c(min(route_result$counts), 
+                                      max(route_result$counts)), 
+                            trans = "sqrt") +
+      geom_point(data = route_result, 
+                 aes(x = lon, y = lat), size = 1, color = "red") +
+      geom_point(data = route_result, 
+                 aes(x = lon_a, y = lat_a), size = 1, color = "red") +
+      geom_text(data = route_result, 
+                aes(x = lon, y = lat, label = b), 
+                hjust= 1, vjust= -0.9, size = 1.5) +
+      geom_text(data = route_result, 
+                aes(x = lon_a, y = lat_a, label = a), 
+                hjust= 1, vjust= -0.9, size = 1.5) +
+      theme(legend.position="none")
+    ```
+
+    Answer: I pasted origin and dest in alphabetical order so I can count both ways for the same route (for example, LAX-JFK will become JFK-LAX and therefore grouped under same category). This way I accurrately counted routes.In addition I gave them different colours just for aesthetics and easiness of distinguishing overlapping thick line segments from each other.
+
+3. LAX:
+
+    (a). Reproduce above plot. Visualize and explain some prominent features you observe. For example, what happened at points 1-5?
+    
+    ```{R}
+    lax_traffic <- flights %>%
+      filter(origin == "LAX" | dest == "LAX", 
+             !is.na(year), !is.na(month), !is.na(dayofmonth), 
+             year >= 1998 && year <= 2009) %>%
+      mutate(year = as.character(year), 
+             month = as.character(month),
+             dayofmonth = as.character(dayofmonth)) %>%
+      mutate(stime = paste0(year, "/", month, "/", dayofmonth)) %>%
+      group_by(stime) %>%
+      summarise(counts = n()) %>%
+      collect()
+    
+    lax_traffic <- lax_traffic %>%
+      mutate(stime = as.Date(stime))
+    
+    ggplot(data = lax_traffic,
+           mapping = aes(x = stime, y = counts)) +
+      geom_line() +
+      scale_x_date(labels = function(x) format(x, "%Y")) +
+      coord_fixed(0.8) +
+      labs(x = "date", y = "n", title = "LA air traffic")
+    ```
+
+    Answer: plotted as required above. I first pasted year, month, and dayofmonth variables into one string variable. Then grouped and collected the result. Then I converted the string variable to a date variable, feeded to ggplot2. Prominent features: we immediately notice a big drop from late 2001 to end of 2002, at label Number 1. It could be because of the effects of 9/11. Many people cancelled their flights and chose not to travel on airplanes during that time. At label Number 2, there is another unusual dip. It could be because of the presidential election, when President Bush was re-elected and in the same month U.S. troops stormed an Iraqi stronghold. There is another dip at label Number 3, which could be due to the massacre of nomad Muslims in Nigeria. At label Number 3, there was a tornado outbreak in the beginning of February. Lastly, at label Number 5, there is a boom of air traffic from the beginning of 2001. It could be the result of many things, such as airlines' new strategy to lower the prices and attract more customers. Also American Airline acquired TWA in the beginning of 2001.
+
+    (b). Visualize and explain seasonal effects.
+
+    ```{R}
+    # write a season function that takes a date object and returns season
+    getSeason <- function(DATES) {
+      WS <- as.Date("2012-12-15", format = "%Y-%m-%d")
+      SE <- as.Date("2012-3-15",  format = "%Y-%m-%d") 
+      SS <- as.Date("2012-6-15",  format = "%Y-%m-%d") 
+      FE <- as.Date("2012-9-15",  format = "%Y-%m-%d") 
+    
+      # Convert dates from any year to 2012 dates
+      d <- as.Date(strftime(DATES, format="2012-%m-%d"))
+    
+      ifelse (d >= WS | d < SE, "Winter",
+        ifelse (d >= SE & d < SS, "Spring",
+          ifelse (d >= SS & d < FE, "Summer", "Fall")))
+    }
+    
+    lax_traffic <- lax_traffic %>% 
+      mutate(season = getSeason(stime), year = format(stime, "%Y"))
+    
+    ggplot() +
+      geom_line(data = lax_traffic, aes(x = stime, y = counts, 
+                                        color = season, group = year)) +
+      scale_x_date(labels = function(x) format(x, "%Y")) +
+      coord_fixed(0.8) +
+      theme(legend.position = "top") +
+      labs(x = "date", y = "n") 
+    
+    lax_traffic %>%
+      group_by(season) %>%
+      summarise(c = sum(counts)) %>%
+      ggplot() +
+        geom_col(aes(x = season, y = c)) +
+        labs(x = "Seasons", y = "Number of flights")
+    ```
+
+    Answer: first I gave the original plot colors and see how the traffic varies with seasons. However there are two many years and it's hard to see an overall trend. Therefore I added up number of flights by seasons and made a histogram. Note that summer is the most popular season, and spring second, winter the worse. However note that the truthfulness of this conclusion is limited, because some years might have different seasonal trends (we can see from the first plot). What we see here in the histogram is simply a total of all seasons from 1998 to 2009. 
+
+    (c). Visualize and explain weekly effects.
+
+    ```{R}
+    lax_traffic %>% 
+      mutate(week = format(stime, "%W")) %>%
+      group_by(week) %>%
+      summarise(n = sum(counts)) %>%
+      mutate(week = as.double(week)) %>%
+      ggplot() +
+        geom_col(aes(x = week, y = n)) +
+        scale_x_continuous(breaks = c(seq(0, 50, 5), 53)) +
+        labs(x = "Week of the Year")
+    ```
+
+    Answer: I plotted a histogram of number of flights by week of the year. Ignore the 1st and 53rd weeks since they are usually not completed weeks (although adding them up together might give us a rough idea of how many flights there are during the end of each and beginning of next year). Note that, similar to the seasonal trend, the peak is around summer time (around week 22-33). Note that here is also a drop at week 52, which is usually around Chirstmas time. It could (just a hypothesis) be because people all want to spend Christmas with their family and therefore airlines do not book too many flights in the week around Christmas.
+  
+    (d). Map top 10 destinations from LAX. Size of dots should reflect the number of flights from LAX to that destination.
+
+    ```{R}
+    top_lax <- flights %>%
+      filter(origin == "LAX") %>%
+      mutate(b = dest, a = origin) %>%
+      group_by(b) %>%
+      summarise(counts = n(), a = "LAX") %>%
+      arrange(desc(counts)) %>%
+      head(10) %>%
+      inner_join(airports, by = c("a" = "faa")) %>%
+      select(a, b, counts, lon, lat) %>%
+      rename(lat_a = lat, lon_a = lon) %>%
+      inner_join(airports, by = c("b" = "faa")) %>%
+      select(a, b, counts, lon_a, lat_a, lon, lat) %>%
+      collect()
+    
+    top_lax <- top_lax %>% 
+      mutate(lat = as.double(lat), lon = as.double(lon), 
+             lat_a = as.double(lat_a), 
+             lon_a = as.double(lon_a))
+    
+    ggplot() +  
+      geom_polygon(data = usa, aes(x = long, y = lat, group = group), 
+           fill = "blue", color = "violet") +
+      coord_fixed(1.3) +
+      geom_segment(aes(x = lon_a, y = lat_a, 
+                       xend = lon, yend = lat), 
+                   data = top_lax, color = "pink") +
+      geom_point(data = top_lax, 
+                 aes(x = lon, y = lat, color = b, 
+                     size = counts / 1500000)) +
+      geom_text(data = top_lax,
+                aes(x = lon, y = lat, label = b), 
+                hjust= -0.8, vjust= -1.2, size = 1.5) +
+      theme(legend.position="none")
+    ```
+
+    Answer: plotted as required above. I added line segments connecting LAX to top 10 airports for the aesthetics and a demonstration of what the plot is for.
+
+4. Build a predictive model for the arrival delay (`arrdelay`) of flights flying from LAX. Use the same filtering criteria as in the [lecture notes](http://hua-zhou.github.io/teaching/biostatm280-2018winter/slides/12-sparklyr/sparklyr-flights.html) to construct training and validation sets. You are allowed to use a maximum of 5 predictors. The prediction performance of your model on the validation data set will be an important factor for grading this question.
+
+    ```{R}
+    model_partition <- flights %>% 
+      sdf_partition(train = 0.8, valid = 0.2, seed = 5555)
+    
+    ml1 <- model_partition$train %>%
+      filter(!is.na(arrdelay), !is.na(depdelay),
+             !is.na(crsdeptime), !is.na(actualelapsedtime),
+             !is.na(crselapsedtime), !is.na(arrtime)) %>%
+      ml_linear_regression(arrdelay ~ depdelay + 
+                           actualelapsedtime + uniquecarrier + 
+                           crselapsedtime + arrtime) 
+    
+    print(ml1)
+    ```
+
+    Answer: predictive model is built and the coefficients are shown above. I plotted decile vs. response to show how well the model predicts on the validation data.
+   
+5. Visualize and explain any other information you want to explore.
+
+    ```{R}
+    traffic <- flights %>%
+      filter(origin == "JFK" | dest == "JFK", 
+             !is.na(year), !is.na(month), !is.na(dayofmonth), 
+             year >= 1998 && year <= 2009) %>%
+      mutate(year = as.character(year), 
+             month = as.character(month),
+             dayofmonth = as.character(dayofmonth)) %>%
+      mutate(stime = paste0(year, "/", month, "/", dayofmonth)) %>%
+      group_by(stime) %>%
+      summarise(counts = n()) %>%
+      collect()
+    
+    traffic <- traffic %>%
+      mutate(stime = as.Date(stime))
+    
+    ggplot(data = traffic,
+           mapping = aes(x = stime, y = counts)) +
+      geom_line() +
+      scale_x_date(labels = function(x) format(x, "%Y")) +
+      coord_fixed(0.8) +
+      labs(x = "date", y = "n")
+    ```
+
+    Answer: I chose to visualize all flight traffic originated from JFK. We already plotted LAX traffic, but I want to see if JFK's traffic distribution is comparable to that of LAX. Furthermore, I'd like to see if the peaks and the "dips" are consistent of the plot we generated earlier, in order to verify universality of my earlier hypotheses. Observe that JFK has much less variation, and surprisingly less flights too! It has the similar trend as LAX's at especially label Number 1 and 5, implying that those two events had nation-wide impact.
